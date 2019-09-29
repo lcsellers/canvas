@@ -1,9 +1,9 @@
 import { Engine } from 'lib/engine'
-import { vec } from 'lib/primitives'
+import { Vec } from 'lib/primitives'
 
 import main from './game'
 
-const FIELD_SIZE = vec(15, 15)
+const FIELD_SIZE = new Vec(15, 15)
 
 new Engine('main')
 	.debug('fps')

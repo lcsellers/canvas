@@ -1,5 +1,5 @@
 import { Engine, PixelBuffer } from 'lib/engine'
-import { Vector, vec, rect, Grid } from 'lib/primitives'
+import { Vec, Grid } from 'lib/primitives'
 import { gray } from 'lib/color'
 import { randBool } from 'lib/random'
 
@@ -7,7 +7,7 @@ const BLACK = gray(0)
 const WHITE = gray(255)
 
 new Engine('main')
-	.setDimensions(vec(160, 100), 'fit')
+	.setDimensions(new Vec(160, 100), 'fit')
 	.createGameState('main', ({ draw }) => {
 
 		const size = draw.size
@@ -22,22 +22,22 @@ new Engine('main')
 		// initializes a pattern (string array of 1s and 0s) to field's center
 		function writePattern(pattern: string[]) {
 			field = new Grid<number>(size).fill(() => 0)
-			const start = vec(
+			const start = new Vec(
 				Math.floor(size.x / 2 - pattern[0].length / 2),
 				Math.floor(size.y / 2 - pattern.length / 2)
 			)
 			for(let y = 0; y < pattern.length; y++) {
 				for(let x = 0; x < pattern[y].length; x++) {
-					field.set(vec(start.x + x, start.y + y), parseInt(pattern[y][x], 10))
+					field.set(Vec.add(start, new Vec(x, y)), parseInt(pattern[y][x], 10))
 				}
 			}
 		}
 
-		function countNeighbors(pos: Vector) {
+		function countNeighbors(pos: Vec) {
 			let neighbors = 0
 			for(let y = -1; y <= 1; y++) {
 				for(let x = -1; x <= 1; x++) {
-					const n = vec.add(pos, vec(x, y))
+					const n = Vec.add(pos, new Vec(x, y))
 					// wrap
 					if(n.x < 0) {
 						n.x = size.x - 1

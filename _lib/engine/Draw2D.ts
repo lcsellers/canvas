@@ -1,4 +1,4 @@
-import { Vector, vec, Rect, rect } from '../primitives'
+import { Vec, Rect } from '../primitives'
 
 export type ScaleType = 'stretch' | 'fit' | 'shrink' | 'responsive' | 'none'
 
@@ -11,15 +11,15 @@ export class Draw2D {
 
 	canvas: HTMLCanvasElement
 	ctx: CanvasRenderingContext2D
-	size!: Vector
-	scale: Vector = vec(1, 1)
-	origin: Vector = vec(0, 0)
+	size!: Vec
+	scale: Vec = new Vec(1, 1)
+	origin: Vec = new Vec()
 
 	private scaleType: ScaleType
 	private pxCanvas: HTMLCanvasElement
 	private pxCtx: CanvasRenderingContext2D
 
-	constructor(canvas: HTMLCanvasElement, dim?: Vector, scale?: ScaleType) {
+	constructor(canvas: HTMLCanvasElement, dim?: Vec, scale?: ScaleType) {
 
 		this.canvas = canvas
 		const ctx = canvas.getContext('2d')
@@ -50,11 +50,11 @@ export class Draw2D {
 	}
 
 	clear(fillStyle = 'black') {
-		this.rect(rect(0, 0, this.size.x, this.size.y), fillStyle)
+		this.rect(new Rect(0, 0, this.size.x, this.size.y), fillStyle)
 		this.ctx.restore()
 	}
 
-	line(start: Vector, end: Vector, stroke: string) {
+	line(start: Vec, end: Vec, stroke: string) {
 		this.applyScale()
 		this.ctx.beginPath()
 		this.ctx.strokeStyle = stroke
@@ -64,24 +64,24 @@ export class Draw2D {
 		this.ctx.restore()
 	}
 
-	rect(rectangle: Rect, fillStyle: string, stroke?: Stroke) {
+	rect(rect: Rect, fillStyle: string, stroke?: Stroke) {
 		this.applyScale()
 		if(stroke) {
 			this.ctx.fillStyle = stroke.color
-			this.ctx.fillRect(rectangle.x, rectangle.y, rectangle.w, rectangle.h)
-			rectangle = rect(
-				rectangle.x + stroke.width,
-				rectangle.y + stroke.width,
-				rectangle.w - (stroke.width * 2),
-				rectangle.h - (stroke.width * 2)
+			this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
+			rect = new Rect(
+				rect.x + stroke.width,
+				rect.y + stroke.width,
+				rect.w - (stroke.width * 2),
+				rect.h - (stroke.width * 2)
 			)
 		}
 		this.ctx.fillStyle = fillStyle
-		this.ctx.fillRect(rectangle.x, rectangle.y, rectangle.w, rectangle.h)
+		this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h)
 		this.ctx.restore()
 	}
 
-	circle(center: Vector, radius: number, fillStyle: string) {
+	circle(center: Vec, radius: number, fillStyle: string) {
 		this.applyScale()
 		this.ctx.fillStyle = fillStyle
 		this.ctx.beginPath()
@@ -90,20 +90,20 @@ export class Draw2D {
 		this.ctx.restore()
 	}
 
-	text(text: string, origin: Vector, fillStyle: string) {
+	text(text: string, origin: Vec, fillStyle: string) {
 		this.applyScale()
 		this.ctx.fillStyle = fillStyle
 		this.ctx.fillText(text, origin.x, origin.y)
 		this.ctx.restore()
 	}
 
-	image(img: HTMLImageElement, origin: Vector) {
+	image(img: HTMLImageElement, origin: Vec) {
 		this.applyScale()
 		this.ctx.drawImage(img, origin.x, origin.y, img.width, img.height)
 		this.ctx.restore()
 	}
 
-	imageData(img: ImageData, origin: Vector, size: Vector, scale: Vector) {
+	imageData(img: ImageData, origin: Vec, size: Vec, scale: Vec) {
 		this.pxCanvas.width = size.x
 		this.pxCanvas.height = size.y
 		this.pxCtx.putImageData(img, 0, 0)
@@ -120,7 +120,7 @@ export class Draw2D {
 	}
 
 	private calculateScale() {
-		const viewport = vec(window.innerWidth, window.innerHeight)
+		const viewport = new Vec(window.innerWidth, window.innerHeight)
 
 		// update physical and virtual size
 		if(this.scaleType === 'none') {
@@ -135,42 +135,39 @@ export class Draw2D {
 		}
 
 		if(this.scaleType === 'stretch') {
-			this.scale = vec(viewport.x / this.size.x, viewport.y / this.size.y)
-			this.origin = vec(0, 0)
+			this.scale = Vec.div(viewport, this.size)
+			this.origin = new Vec()
 		} else if(this.scaleType === 'fit') {
 			let scale = viewport.x / this.size.x
 			if(this.size.y * scale > viewport.y) {
 				scale = viewport.y / this.size.y
-				this.origin = vec((viewport.x - (this.size.x * scale))/2, 0)
+				this.origin = new Vec((viewport.x - (this.size.x * scale))/2, 0)
 			} else {
-				this.origin = vec(0, (viewport.y - (this.size.y * scale))/2)
+				this.origin = new Vec(0, (viewport.y - (this.size.y * scale))/2)
 			}
-			this.scale = vec(scale, scale)
+			this.scale = new Vec(scale, scale)
 		} else if(this.scaleType === 'shrink') {
 			let scale = 1
 			if(this.size.x > viewport.x) {
 				scale = viewport.x / this.size.x
 				if(this.size.y * scale > viewport.y) {
 					scale = viewport.y / this.size.y
-					this.origin = vec((viewport.x - (this.size.x * scale))/2, 0)
+					this.origin = new Vec((viewport.x - (this.size.x * scale))/2, 0)
 				} else {
-					this.origin = vec(0, (viewport.y - (this.size.y * scale))/2)
+					this.origin = new Vec(0, (viewport.y - (this.size.y * scale))/2)
 				}
 			} else if(this.size.y > viewport.y) {
 				scale = viewport.y / this.size.y
 				if(this.size.x * scale > viewport.x) {
 					scale = viewport.x / this.size.x
-					this.origin = vec(0, (viewport.y - (this.size.y * scale))/2)
+					this.origin = new Vec(0, (viewport.y - (this.size.y * scale))/2)
 				} else {
-					this.origin = vec((viewport.x - (this.size.x * scale))/2, 0)
+					this.origin = new Vec((viewport.x - (this.size.x * scale))/2, 0)
 				}
 			} else {
-				this.origin = vec(
-					(viewport.x - this.size.x)/2,
-					(viewport.y - this.size.y)/2
-				)
+				this.origin = Vec.sub(viewport, this.size).scale(0.5)
 			}
-			this.scale = vec(scale, scale)
+			this.scale = new Vec(scale, scale)
 		}
 
 	}

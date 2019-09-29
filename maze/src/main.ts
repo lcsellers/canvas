@@ -1,9 +1,9 @@
 import { Engine } from 'lib/engine'
-import { vec } from 'lib/primitives'
+import { Vec } from 'lib/primitives'
 
-const SCREEN = vec(500, 500)
+const SCREEN = new Vec(500, 500)
 
-const FIELD_SIZE = vec(4, 4)
+const FIELD_SIZE = new Vec(4, 4)
 const TILE_SIZE = 5
 
 import solve from './solve'

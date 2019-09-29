@@ -1,21 +1,52 @@
-import { Vector } from './v2d'
+import { Vec } from './Vec'
 
-interface Rect {
+export class Rect {
+
 	x: number
 	y: number
 	w: number
 	h: number
-}
 
-const rect = (x: number, y: number, w: number, h: number): Rect => ({ x, y, w, h })
-rect.collide = (rect: Rect, point: Vector) => {
-	return	point.x >= rect.x &&
-			point.x <= rect.x + rect.w &&
-			point.y >= rect.y &&
-			point.y <= rect.y + rect.h
-}
+	constructor(x?: number | Rect | Vec, y?: number, w?: number, h?: number) {
+		if(x instanceof Rect) {
+			this.x = x.x
+			this.y = x.y
+			this.w = x.w
+			this.h = x.h
+		} else if(x instanceof Vec) {
+			this.x = 0
+			this.y = 0
+			this.w = x.x
+			this.h = x.y
+		} else {
+			this.x = x || 0
+			this.y = y || 0
+			this.w = w || 1
+			this.h = h || 1
+		}
+	}
 
-export {
-	Rect,
-	rect
+	get origin() {
+		return new Vec(this.x, this.y)
+	}
+	set origin(v: Vec) {
+		this.x = v.x
+		this.y = v.y
+	}
+
+	get size() {
+		return new Vec(this.w, this.h)
+	}
+	set size(v: Vec) {
+		this.w = v.x
+		this.h = v.y
+	}
+
+	includes(point: Vec) {
+		return	point.x >= this.x &&
+				point.x <= this.x + this.w &&
+				point.y >= this.y &&
+				point.y <= this.y + this.h	
+	}
+
 }

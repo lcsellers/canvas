@@ -1,26 +1,26 @@
-import { Vector, vec, rect } from 'lib/primitives'
+import { Vec, Rect } from 'lib/primitives'
 import { GameState } from 'lib/engine'
 import { Key } from 'lib/input'
 import { randRange } from 'lib/random'
 
-const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vector) => {
+const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vec) => {
 
 	const START_SPEED = 400
 
-	let snake: Vector[]
-	let fruit: Vector
-	let dir: Vector
+	let snake: Vec[]
+	let fruit: Vec
+	let dir: Vec
 	let speed: number
 
 	function placeFruit() {
 		do {
-			fruit = vec(randRange(0, FIELD_SIZE.x), randRange(0, FIELD_SIZE.y))
-		} while(snake.some(segment => vec.eq(segment, fruit)))
+			fruit = new Vec(randRange(0, FIELD_SIZE.x), randRange(0, FIELD_SIZE.y))
+		} while(snake.some(segment => segment.eq(fruit)))
 	}
 
 	function reset() {
-		snake = [vec(Math.floor(FIELD_SIZE.x/2), Math.floor(FIELD_SIZE.y/2))]
-		dir = vec(0, -1)
+		snake = [new Vec(Math.floor(FIELD_SIZE.x/2), Math.floor(FIELD_SIZE.y/2))]
+		dir = new Vec(0, -1)
 		speed = START_SPEED
 		move.changeSpeed(speed)
 		placeFruit()
@@ -28,7 +28,7 @@ const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vector) => {
 	
 	const move = engine.throttle(() => {
 
-		const newSegment = vec.add(snake[0], dir)
+		const newSegment = Vec.add(snake[0], dir)
 		if(newSegment.x < 0) {
 			newSegment.x = FIELD_SIZE.x - 1
 		} else if(newSegment.x >= FIELD_SIZE.x) {
@@ -40,13 +40,13 @@ const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vector) => {
 			newSegment.y = 0
 		}
 
-		if(snake.some(segment => vec.eq(segment, newSegment))) {
+		if(snake.some(segment => segment.eq(newSegment))) {
 			reset()
 		}
 
 		snake.unshift(newSegment)
 
-		if(vec.eq(newSegment, fruit)) {
+		if(newSegment.eq(fruit)) {
 			placeFruit()
 			if(speed > 100) {
 				speed -= 10
@@ -69,21 +69,21 @@ const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vector) => {
 
 	return ({ draw, buttons }) => {
 		if(buttons.state('up') && dir.x !== 0) {
-			dir = vec(0, -1)
+			dir = new Vec(0, -1)
 		} else if(buttons.state('down') && dir.x !== 0) {
-			dir = vec(0, 1)
+			dir = new Vec(0, 1)
 		} else if(buttons.state('left') && dir.y !== 0) {
-			dir = vec(-1, 0)
+			dir = new Vec(-1, 0)
 		} else if(buttons.state('right') && dir.y !== 0) {
-			dir = vec(1, 0)
+			dir = new Vec(1, 0)
 		}
 
 		move()
 
 		draw.clear('black')
-		draw.rect(rect(fruit.x, fruit.y, 1, 1), 'red')
+		draw.rect(new Rect(fruit.x, fruit.y, 1, 1), 'red')
 		snake.forEach(segment => {
-			draw.rect(rect(segment.x, segment.y, 1, 1), 'green')
+			draw.rect(new Rect(segment.x, segment.y, 1, 1), 'green')
 		})
 	}
 }

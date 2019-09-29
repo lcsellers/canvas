@@ -1,4 +1,4 @@
-import { Vector, vec, rect } from 'lib/primitives'
+import { Vec, Rect } from 'lib/primitives'
 import { Draw2D } from 'lib/engine'
 
 import Piece from './Piece'
@@ -9,16 +9,16 @@ export default class Course {
 	private data: Array<number | undefined>
 	private lines: number[] = []
 
-	constructor(private draw: Draw2D, public size: Vector, private pos: Vector, private tileSize: number) {
+	constructor(private draw: Draw2D, public size: Vec, private pos: Vec, private tileSize: number) {
 		this.data = new Array(size.x * size.y)
 	}
 
 	fits(p: Piece) {
 		for(let y = 0; y < 4; y++) {
 			for(let x = 0; x < 4; x++) {
-				const pieceCoord = vec(x, y)
+				const pieceCoord = new Vec(x, y)
 				if(!p.getTile(pieceCoord)) continue
-				const c = vec.add(p.pos, pieceCoord)
+				const c = Vec.add(p.pos, pieceCoord)
 				if(c.x < 0 || c.x >= this.size.x || c.y < 0 || c.y >= this.size.y || this.data[c.y * this.size.x + c.x] != undefined) {
 					return false
 				}
@@ -30,7 +30,7 @@ export default class Course {
 	set(p: Piece) {
 		this.forPieceGrid(pieceCoord => {
 			if(!p.getTile(pieceCoord)) return
-			const c = vec.add(p.pos, pieceCoord)
+			const c = Vec.add(p.pos, pieceCoord)
 			this.data[c.y * this.size.x + c.x] = p.shapeIndex
 		})
 
@@ -54,7 +54,7 @@ export default class Course {
 	renderPiece(p: Piece, opacity: number = 1) {
 		this.forPieceGrid(coord => {
 			if(p.getTile(coord)) {
-				const r = rect(
+				const r = new Rect(
 					this.pos.x + this.tileSize + ((p.pos.x + coord.x) * this.tileSize),
 					this.pos.y + ((p.pos.y + coord.y) * this.tileSize),
 					this.tileSize,
@@ -69,12 +69,12 @@ export default class Course {
 	}
 
 	render() {
-		this.draw.rect(rect(this.pos.x, this.pos.y, (this.size.x + 2) * this.tileSize, (this.size.y + 1) * this.tileSize), 'silver')
-		this.draw.rect(rect(this.pos.x + this.tileSize, 0, this.size.x * this.tileSize, this.size.y * this.tileSize), 'black')
+		this.draw.rect(new Rect(this.pos.x, this.pos.y, (this.size.x + 2) * this.tileSize, (this.size.y + 1) * this.tileSize), 'silver')
+		this.draw.rect(new Rect(this.pos.x + this.tileSize, 0, this.size.x * this.tileSize, this.size.y * this.tileSize), 'black')
 		this.data.forEach((tile, i) => {
 			if(tile == undefined) return
-			const coord = vec(i % this.size.x, Math.floor(i / this.size.x))
-			this.draw.rect(rect(
+			const coord = new Vec(i % this.size.x, Math.floor(i / this.size.x))
+			this.draw.rect(new Rect(
 				this.pos.x + ((coord.x + 1) * this.tileSize),
 				this.pos.y + (coord.y * this.tileSize),
 				this.tileSize,
@@ -83,10 +83,10 @@ export default class Course {
 		})
 	}
 
-	private forPieceGrid(fn: (coord: Vector) => void) {
+	private forPieceGrid(fn: (coord: Vec) => void) {
 		for(let y = 0; y < 4; y++) {
 			for(let x = 0; x < 4; x++) {
-				fn(vec(x, y))
+				fn(new Vec(x, y))
 			}
 		}
 	}

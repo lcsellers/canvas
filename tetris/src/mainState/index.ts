@@ -1,4 +1,4 @@
-import { Vector, vec } from 'lib/primitives'
+import { Vec } from 'lib/primitives'
 import { GameState } from 'lib/engine'
 import { Key } from 'lib/input'
 import { randRange } from 'lib/random'
@@ -6,12 +6,12 @@ import { randRange } from 'lib/random'
 import Course from '../Course'
 import Piece from '../Piece'
 
-let FIELD_SIZE: Vector
+let FIELD_SIZE: Vec
 let TILE_SIZE: number
 
-const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vector, tileSize?: number) => {
+const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileSize?: number) => {
 
-	FIELD_SIZE = fieldSize || FIELD_SIZE || vec(10, 10)
+	FIELD_SIZE = fieldSize || FIELD_SIZE || new Vec(10, 10)
 	TILE_SIZE = tileSize || TILE_SIZE || 10
 
 	const SCORE_PER_PIECE = 25
@@ -27,7 +27,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vector, ti
 	let piecesDropped = 0
 	
 	function randomPiece() {
-		current = new Piece(randRange(0, 7), vec(3, 0))
+		current = new Piece(randRange(0, 7), new Vec(3, 0))
 		if(!course.fits(current)) {
 			engine.gameState('gameOver', score)
 		} else {
@@ -36,7 +36,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vector, ti
 	}
 	
 	function calcPreview() {
-		preview = new Piece(current.shapeIndex, vec(current.pos.x, current.pos.y), current.rotation)
+		preview = new Piece(current.shapeIndex, new Vec(current.pos.x, current.pos.y), current.rotation)
 		while(course.fits(preview)) {
 			preview.pos.y++
 		}
@@ -96,7 +96,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vector, ti
 		[Key.ENTER]: 'drop'
 	})
 
-	course = new Course(draw, FIELD_SIZE, vec(0, 0), TILE_SIZE)
+	course = new Course(draw, FIELD_SIZE, new Vec(), TILE_SIZE)
 	randomPiece()
 
 	buttons.on('drop:down', () => {
@@ -127,7 +127,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vector, ti
 		course.renderPiece(preview, 0.35)
 		course.renderPiece(current)
 	
-		draw.text(`Score: ${score}`, vec(135, 20), 'black')
+		draw.text(`Score: ${score}`, new Vec(135, 20), 'black')
 	}
 
 }

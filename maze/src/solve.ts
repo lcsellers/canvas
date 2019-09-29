@@ -1,5 +1,5 @@
 import { GameState, PixelBuffer, Draw2D } from 'lib/engine'
-import { Vector, vec } from 'lib/primitives'
+import { Vec } from 'lib/primitives'
 import { Key } from 'lib/input'
 
 import Maze from './Maze'
@@ -9,16 +9,16 @@ class Player {
 	static radius = 0.2
 	static speed = 0.1
 
-	pos: Vector
-	mazeCell: Vector
+	pos: Vec
+	mazeCell: Vec
 
-	constructor(private draw: Draw2D, start: Vector) {
-		this.pos = vec.add(start, vec(0.5, 0.5))
+	constructor(private draw: Draw2D, start: Vec) {
+		this.pos = Vec.add(start, new Vec(0.5, 0.5))
 		this.mazeCell = start
 	}
 
-	update(up: boolean, right: boolean, down: boolean, left: boolean, allowChange: (change: Vector, newCell: Vector) => boolean) {
-		const velocity = vec(0, 0)
+	update(up: boolean, right: boolean, down: boolean, left: boolean, allowChange: (change: Vec, newCell: Vec) => boolean) {
+		const velocity = new Vec
 		if(up) {
 			velocity.y -= Player.speed
 		}
@@ -32,9 +32,9 @@ class Player {
 			velocity.x -= Player.speed
 		}
 
-		const newPos = vec.add(this.pos, velocity)
-		const newCell = vec(Math.floor(newPos.x), Math.floor(newPos.y))
-		const cellChange = vec.sub(newCell, this.mazeCell)
+		const newPos = Vec.add(this.pos, velocity)
+		const newCell = new Vec(Math.floor(newPos.x), Math.floor(newPos.y))
+		const cellChange = Vec.sub(newCell, this.mazeCell)
 
 		if((!cellChange.x && !cellChange.y) || allowChange(cellChange, newCell)) {
 			this.pos = newPos
@@ -44,14 +44,14 @@ class Player {
 	}
 
 	render(scale: number) {
-		const center = vec.scale(this.pos, scale)
+		const center = Vec.scale(this.pos, scale)
 		this.draw.circle(center, Player.radius * scale, 'white')
 		this.draw.circle(center, 1, 'black')
 	}
 
 }
 
-const solve: GameState = ({ draw }, engine, FIELD_SIZE, TILE_SIZE, scale: Vector, wallRgb: string, px: PixelBuffer, maze: Maze) => {
+const solve: GameState = ({ draw }, engine, FIELD_SIZE, TILE_SIZE, scale: Vec, wallRgb: string, px: PixelBuffer, maze: Maze) => {
 
 	const player = new Player(draw, maze.start)
 
@@ -69,14 +69,14 @@ const solve: GameState = ({ draw }, engine, FIELD_SIZE, TILE_SIZE, scale: Vector
 			if(change.x === 1 && cell[1]) return false
 			if(change.y === 1 && cell[2]) return false
 			if(change.x === -1 && cell[3]) return false
-			if(vec.eq(newCell, maze.goal)) {
-				engine.gameState('generate', vec.add(FIELD_SIZE, vec(1, 1)), TILE_SIZE)
+			if(newCell.eq(maze.goal)) {
+				engine.gameState('generate', Vec.add(FIELD_SIZE, new Vec(1, 1)), TILE_SIZE)
 			}
 			return true
 		})
 
 		draw.clear(wallRgb)
-		px.render(vec(0, 0), scale)
+		px.render(new Vec(), scale)
 		player.render(TILE_SIZE * scale.x)
 	}
 

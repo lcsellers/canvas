@@ -1,4 +1,4 @@
-import { Vector, Collection } from 'lib/primitives'
+import { Vec } from 'lib/primitives'
 
 import * as tetrimino from './tetrimino'
 
@@ -8,13 +8,13 @@ export default class Piece {
 	shape: string
 	color: string
 
-	constructor(shape: number, public pos: Vector, public rotation: number = 0) {
+	constructor(shape: number, public pos: Vec, public rotation: number = 0) {
 		this.shapeIndex = shape % 7
 		this.shape = tetrimino.shapes[this.shapeIndex]
 		this.color = tetrimino.colors[this.shapeIndex]
 	}
 
-	getTile(at: Vector) {
+	getTile(at: Vec) {
 		switch(this.rotation % 4) {
 			case 0:
 				return this.shape[at.y * 4 + at.x] === 'o'

@@ -1,4 +1,4 @@
-import { Vector, vec, Collection } from '../primitives'
+import { Vec, Collection } from '../primitives'
 import { Buttons, Bindings, mousePos } from '../input'
 import { Draw2D, ScaleType } from './Draw2D'
 
@@ -12,7 +12,7 @@ export interface EngineState {
 	frameTime: number
 	fps: number
 	images: Collection<HTMLImageElement>
-	mouse: Vector
+	mouse: Vec
 	buttons: Buttons
 }
 
@@ -30,7 +30,7 @@ export class Engine {
 	/** List of images to load before frame is attached */
 	private preloadAssets: string[] = []
 	/** Size and scale type to initialize Draw2D with */
-	private drawSize?: Vector
+	private drawSize?: Vec
 	private drawScale?: ScaleType
 
 	/** Color to clear the screen each frame before user frame */
@@ -65,7 +65,7 @@ export class Engine {
 	 * SETUP
 	 */
 
-	setDimensions(dim?: Vector, scale?: ScaleType) {
+	setDimensions(dim?: Vec, scale?: ScaleType) {
 		this.drawSize = dim
 		this.drawScale = scale
 		return this
@@ -198,7 +198,7 @@ export class Engine {
 				draw: new Draw2D(canvas as HTMLCanvasElement, this.drawSize, this.drawScale),
 				frameTime: 0,
 				fps: 0,
-				mouse: vec(0, 0),
+				mouse: new Vec(),
 				images: {},
 				buttons: this.buttons
 			}
@@ -226,12 +226,9 @@ export class Engine {
 
 	private onMouseMove(e: MouseEvent) {
 		if(!this.state) return
-
-		const mouseCoords = mousePos(this.state.draw.canvas, e)
-		this.state.mouse = vec.add(
-			vec.mult(mouseCoords, this.state.draw.scale),
-			this.state.draw.origin
-		)
+		this.state.mouse = mousePos(this.state.draw.canvas, e)
+			.mult(this.state.draw.scale)
+			.add(this.state.draw.origin)
 	}
 
 	private frame() {
