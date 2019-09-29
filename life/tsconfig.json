@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"strict": true,
+		"outDir": "./dist/",
+		"noImplicitAny": true,
+		"moduleResolution": "node",
+		"module": "es6",
+		"target": "es6",
+		"sourceMap": true,
+		"baseUrl": ".",
+		"lib": [
+			"esnext",
+			"dom",
+			"dom.iterable",
+			"scripthost"
+		],
+		"paths": {
+			"lib": [
+				"../_lib/index"
+			],
+			"lib/*": [
+				"../_lib/*"
+			]
+		}
+	},
+	"exclude": [
+		"node_modules"
+	]
+}
