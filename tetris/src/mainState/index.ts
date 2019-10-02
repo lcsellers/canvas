@@ -25,6 +25,8 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 	
 	let speed = 1000
 	let piecesDropped = 0
+
+	const scoreText = engine.createText('Score: ')
 	
 	function randomPiece() {
 		current = new Piece(randRange(0, 7), new Vec(3, 0))
@@ -127,7 +129,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 		course.renderPiece(preview, 0.35)
 		course.renderPiece(current)
 	
-		draw.text(`Score: ${score}`, new Vec(135, 20), 'black')
+		draw.text(new Vec(135, 20), scoreText.set(`Score: ${score}`, ))
 	}
 
 }

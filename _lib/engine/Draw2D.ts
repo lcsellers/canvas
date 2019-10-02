@@ -1,4 +1,5 @@
 import { Vec, Rect } from '../primitives'
+import { Text } from './Text'
 
 export type ScaleType = 'stretch' | 'fit' | 'shrink' | 'responsive' | 'none'
 
@@ -90,10 +91,9 @@ export class Draw2D {
 		this.ctx.restore()
 	}
 
-	text(text: string, origin: Vec, fillStyle: string) {
+	text(origin: Vec, text: Text) {
 		this.applyScale()
-		this.ctx.fillStyle = fillStyle
-		this.ctx.fillText(text, origin.x, origin.y)
+		text.render(origin)
 		this.ctx.restore()
 	}
 

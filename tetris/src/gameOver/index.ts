@@ -10,10 +10,13 @@ const GameOver: GameState = ({ buttons }, engine, score) => {
 
 	buttons.on('restart:up', () => engine.gameState('main'))
 
+	const gameOverText = engine.createText('GAME OVER').origin('top center')
+	const scoreText = engine.createText('Final Score: ' + score).origin('top center')
+
 	return ({ draw }) => {
 		draw.clear('white')
-		draw.text('GAME OVER', new Vec(50, 50), 'black')
-		draw.text('Final Score: ' + score, new Vec(45, 100), 'black')
+		draw.text(new Vec(draw.size.x/2, 50), gameOverText)
+		draw.text(new Vec(draw.size.x/2, 100), scoreText)
 	}
 }
 

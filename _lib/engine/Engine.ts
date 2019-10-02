@@ -1,6 +1,8 @@
 import { Vec, Collection } from '../primitives'
 import { Buttons, Bindings, mousePos } from '../input'
+import { Color } from '../color'
 import { Draw2D, ScaleType } from './Draw2D'
+import { Text } from './Text'
 
 type Debugger = 'fps'
 
@@ -50,18 +52,29 @@ export class Engine {
 	/** Accumulates frames executed in 1000 ms chunks */
 	private frameCount = 0
 
+	/** Timing */
 	private timerId = 0
 	private throttleTimers: any = {}
 	private delayTimers: any = {}
 
+	/** Game States */
 	private userFrame: EngineCallback = () => {}
 	private gameStates: Collection<GameState> = {}
 
+	/** animationFrame and Pausing */
 	private animationId = 0
 	private _paused = false
 	get paused() {
 		return this._paused
 	}
+
+	/** Text Defaults */
+	textDefaultFamily?: string
+	textDefaultSize?: number
+	textDefaultWeight?: string
+	textDefaultStyle?: string
+	textDefaultFg?: Color
+	textDefaultBg?: Color
 
 	constructor(canvasId?: string) {
 		this.canvasId = canvasId || ''
@@ -116,6 +129,46 @@ export class Engine {
 
 	createGameState(name: string, factory: GameState) {
 		this.gameStates[name] = factory
+		return this
+	}
+
+	/**
+	 * Text Handling
+	 */
+	createText(text: string) {
+		return new Text(this.state!.draw.ctx, text,
+			this.textDefaultFamily,
+			this.textDefaultWeight,
+			this.textDefaultStyle,
+			this.textDefaultSize,
+			this.textDefaultFg, this.textDefaultBg
+		)
+	}
+	setDefaultFont(font: string) {
+		this.textDefaultFamily = font
+		return this
+	}
+	setDefaultTextSize(size: number) {
+		this.textDefaultSize = size
+		return this
+	}
+	setDefaultTextWeight(weight: string) {
+		this.textDefaultWeight = weight
+		return this
+	}
+	setDefaultTextStyle(style: string) {
+		this.textDefaultStyle = style
+		return this
+	}
+	setDefaultTextColor(fg: Color, bg?: Color) {
+		this.textDefaultFg = fg
+		if(bg) {
+			this.textDefaultBg = bg
+		}
+		return this
+	}
+	setDefaultTextBackground(bg: Color) {
+		this.textDefaultBg = bg
 		return this
 	}
 
