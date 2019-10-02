@@ -5,9 +5,11 @@ import { Draw2D } from './Draw2D'
 export class PixelBuffer {
 
 	private buf: ImageData
+	private bounds: Rect
 
 	constructor(private draw: Draw2D, public size: Vec) {
 		this.buf = draw.ctx.createImageData(size.x, size.y)
+		this.bounds = new Rect(size)
 	}
 
 	get(coord: Vec): Color {
@@ -29,6 +31,10 @@ export class PixelBuffer {
 				this.set(new Vec(x, y), color)
 			}
 		}
+	}
+
+	clear(color: Color) {
+		this.fill(this.bounds, color)
 	}
 
 	render(pos: Vec = new Vec(), scale: Vec = new Vec(1, 1)) {
