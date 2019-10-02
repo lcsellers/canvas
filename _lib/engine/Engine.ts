@@ -57,6 +57,12 @@ export class Engine {
 	private userFrame: EngineCallback = () => {}
 	private gameStates: Collection<GameState> = {}
 
+	private animationId = 0
+	private _paused = false
+	get paused() {
+		return this._paused
+	}
+
 	constructor(canvasId?: string) {
 		this.canvasId = canvasId || ''
 	}
@@ -116,6 +122,18 @@ export class Engine {
 	/**
 	 * During Execution
 	 */
+
+	pause(paused: boolean = true) {
+		if(this._paused === paused) return this
+		if(this._paused) {
+			this.lastFrameTime = performance.now()
+			this.animationId = requestAnimationFrame(() => this.frame())
+		} else if(this.animationId) {
+			cancelAnimationFrame(this.animationId)
+		}
+		this._paused = paused
+		return this
+	}
 
 	gameState(name: string, ...args: any[]) {
 		if(!this.state) {
@@ -209,8 +227,10 @@ export class Engine {
 
 			this.gameState(gameState, ...args)
 
-			this.lastFrameTime = performance.now()
-			requestAnimationFrame(() => this.frame())
+			if(!this._paused) {
+				this.lastFrameTime = performance.now()
+				requestAnimationFrame(() => this.frame())
+			}
 
 		})
 		return this
@@ -232,6 +252,7 @@ export class Engine {
 	}
 
 	private frame() {
+		this.animationId = 0
 		const now = performance.now()
 		const frameTime = now - this.lastFrameTime
 		this.lastFrameTime = now
@@ -275,7 +296,9 @@ export class Engine {
 			this.state!.frameTime = 0
 		}
 
-		requestAnimationFrame(() => this.frame())
+		if(!this._paused) {
+			this.animationId = requestAnimationFrame(() => this.frame())
+		}
 	}
 
 }
