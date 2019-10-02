@@ -51,3 +51,16 @@ export function colorString(color: Color) {
 		? `rgb(${color.r},${color.g},${color.b})`
 		: `rgba(${color.r},${color.g},${color.b},${color.a})`
 }
+
+export const colors = {
+	transparent:	() => ({ r: 0,   g: 0,   b: 0,   a: 0 }) as Color,
+	black:			() => ({ r: 0,   g: 0,   b: 0,   a: 1 }) as Color,
+	white:			() => ({ r: 255, g: 255, b: 255, a: 1 }) as Color,
+	red:			() => ({ r: 255, g: 0,   b: 0,   a: 1 }) as Color,
+	orange:			() => ({ r: 255, g: 165, b: 0,   a: 1 }) as Color,
+	yellow:			() => ({ r: 255, g: 255, b: 0,   a: 1 }) as Color,
+	green:			() => ({ r: 0,   g: 255, b: 0,   a: 1 }) as Color,
+	blue:			() => ({ r: 0,   g: 0,   b: 255, a: 1 }) as Color,
+	indigo:			() => ({ r: 75,  g: 0,   b: 130, a: 1 }) as Color,
+	violet:			() => ({ r: 238, g: 130, b: 238, a: 1 }) as Color
+}
