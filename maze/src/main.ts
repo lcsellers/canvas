@@ -10,7 +10,7 @@ import solve from './solve'
 import generate from './generate'
 
 new Engine('main')
-	.debug('fps')
+	.setInternalDebugging('fps')
 	.setDimensions(SCREEN, 'fit')
 	.createGameState('generate', generate)
 	.createGameState('solve', solve)

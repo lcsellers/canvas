@@ -6,7 +6,7 @@ import main from './game'
 const FIELD_SIZE = new Vec(15, 15)
 
 new Engine('main')
-	.debug('fps')
+	.setInternalDebugging('fps')
 	.setDimensions(FIELD_SIZE, 'fit')
 	.createGameState('main', main)
 	// .createGameState('gameOver', gameOver)

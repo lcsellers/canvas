@@ -1,6 +1,6 @@
 import { Vec, Collection } from '../primitives'
 import { Buttons, Bindings, mousePos } from '../input'
-import { Color } from '../color'
+import { Color, colors } from '../color'
 import { Draw2D, ScaleType } from './Draw2D'
 import { Text } from './Text'
 
@@ -26,8 +26,12 @@ export class Engine {
 	/** Used upon construction if a canvas element already exists */
 	private canvasId: string
 	
-	/** Whether to display FPS */
-	private debugFps = false
+	/** Debugging */
+	private internalDebug = {
+		fps: false
+	}
+	private userDebug: string[] = []
+	private debugText: Text | null = null
 
 	/** List of images to load before frame is attached */
 	private preloadAssets: string[] = []
@@ -99,10 +103,10 @@ export class Engine {
 		return this
 	}
 
-	debug(...debuggers: Debugger[]) {
-		if(debuggers.includes('fps')) {
-			this.debugFps = !this.debugFps
-		}
+	setInternalDebugging(...debuggers: Debugger[]) {
+		debuggers.forEach(d => {
+			this.internalDebug[d] = !this.internalDebug[d]
+		})
 		return this
 	}
 
@@ -217,6 +221,10 @@ export class Engine {
 		return this.state.images
 	}
 
+	debug(key: string, value: any) {
+		this.userDebug.push(key + ': ' + value)
+		return this
+	}
 
 	/**
 	 * Timing
@@ -273,6 +281,9 @@ export class Engine {
 				images: {},
 				buttons: this.buttons
 			}
+			this.debugText = new Text(this.state.draw.ctx, '')
+				.color(colors.white(), colors.black())
+				.padding(10)
 
 			if(this.preloadAssets.length) {
 				await this.loadImages(...this.preloadAssets)
@@ -335,17 +346,20 @@ export class Engine {
 				this.fpsElapsedTime = 0
 			}
 			this.frameCount++
-			// display fps
-			if(this.debugFps) {
-				const ctx = this.state!.draw.ctx
-				ctx.save()
-				ctx.fillStyle = 'black'
-				ctx.fillRect(0, 0, 45, 18)
-				ctx.fillStyle = 'white'
-				ctx.textBaseline = 'top'
-				ctx.fillText('FPS: ' + this.state!.fps.toFixed(0), 4, 4, )
-				ctx.restore()
+			// debugging
+			if(this.internalDebug.fps) {
+				this.userDebug.unshift('FPS: ' + this.state!.fps.toFixed(0))
 			}
+			if(this.userDebug.length) {
+				const debugPos = new Vec(0, 0)
+				this.userDebug.forEach(d => {
+					this.debugText!.text = d
+					this.debugText!.render(debugPos)
+					debugPos.y += this.debugText!.renderedSize.y
+				})
+			}
+			this.userDebug = []
+			// reset accumulator
 			this.state!.frameTime = 0
 		}
 

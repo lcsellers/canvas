@@ -8,7 +8,7 @@ const FIELD_SIZE = new Vec(10, 17)
 const TILE_SIZE = 10
 
 new Engine('main')
-	.debug('fps')
+	.setInternalDebugging('fps')
 	.setDimensions(Vec.add(FIELD_SIZE, new Vec(6, 1)).scale(TILE_SIZE), 'fit')
 	.createGameState('main', main)
 	.createGameState('gameOver', gameOver)
