@@ -10,6 +10,7 @@ const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vec) => {
 	let snake: Vec[]
 	let fruit: Vec
 	let dir: Vec
+	let nextDir: Vec
 	let speed: number
 
 	function placeFruit() {
@@ -21,12 +22,18 @@ const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vec) => {
 	function reset() {
 		snake = [new Vec(Math.floor(FIELD_SIZE.x/2), Math.floor(FIELD_SIZE.y/2))]
 		dir = new Vec(0, -1)
+		nextDir = new Vec(0, -1)
 		speed = START_SPEED
 		move.changeSpeed(speed)
 		placeFruit()
 	}
 	
 	const move = engine.throttle(() => {
+
+		// prevent changing to inputted direction if it is directly opposite the current dir
+		if((dir.x === 0 || nextDir.x === 0) && (dir.y === 0 || nextDir.y === 0)) {
+			dir = nextDir
+		}
 
 		const newSegment = Vec.add(snake[0], dir)
 		if(newSegment.x < 0) {
@@ -68,14 +75,16 @@ const SnakeGame: GameState = (state, engine, FIELD_SIZE: Vec) => {
 	reset()
 
 	return ({ draw, buttons }) => {
-		if(buttons.state('up') && dir.x !== 0) {
-			dir = new Vec(0, -1)
-		} else if(buttons.state('down') && dir.x !== 0) {
-			dir = new Vec(0, 1)
-		} else if(buttons.state('left') && dir.y !== 0) {
-			dir = new Vec(-1, 0)
-		} else if(buttons.state('right') && dir.y !== 0) {
-			dir = new Vec(1, 0)
+		engine.debug('speed', speed)
+
+		if(buttons.state('up')) {
+			nextDir = new Vec(0, -1)
+		} else if(buttons.state('down')) {
+			nextDir = new Vec(0, 1)
+		} else if(buttons.state('left')) {
+			nextDir = new Vec(-1, 0)
+		} else if(buttons.state('right')) {
+			nextDir = new Vec(1, 0)
 		}
 
 		move()
