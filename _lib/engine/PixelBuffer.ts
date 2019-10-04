@@ -1,4 +1,4 @@
-import { Vec, Rect } from '../primitives'
+import { Vec, Rect, Spline } from '../primitives'
 import { Color, rgb } from '../color'
 import { Draw2D } from './Draw2D'
 
@@ -18,6 +18,7 @@ export class PixelBuffer {
 	}
 
 	set(coord: Vec, color: Color) {
+		if(!this.bounds.includes(coord)) return
 		const offset = this.offset(coord)
 		this.buf.data[offset] = color.r
 		this.buf.data[offset + 1] = color.g
@@ -35,6 +36,14 @@ export class PixelBuffer {
 
 	clear(color: Color) {
 		this.fill(this.bounds, color)
+	}
+
+	drawSpline(s: Spline, color: Color, precision = 0.005) {
+		const end = s.loop ? s.points.length : s.points.length - 3
+		for(let t = 0; t < end; t += precision) {
+			const coord = s.getCoord(t)
+			this.set(new Vec(Math.floor(coord.x), Math.floor(coord.y)), color)
+		}
 	}
 
 	render(pos: Vec = new Vec(), scale: Vec = new Vec(1, 1)) {
