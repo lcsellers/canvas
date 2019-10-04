@@ -39,7 +39,7 @@ export class Engine {
 	private drawSize?: Vec
 	private drawScale?: ScaleType
 
-	/** Color to clear the screen each frame before user frame */
+	/** Color to use for letterboxes in 'fit' mode */
 	private clearColor = 'white'
 
 	/** Prevent start() being called multiple times */
@@ -300,14 +300,6 @@ export class Engine {
 		return this
 	}
 
-	private clear() {
-		const { canvas, ctx } = this.state!.draw
-		ctx.save()
-		ctx.fillStyle = this.clearColor
-		ctx.fillRect(0, 0, canvas.width, canvas.height)
-		ctx.restore()
-	}
-
 	private onMouseMove(e: MouseEvent) {
 		if(!this.state) return
 		this.state.mouse = mousePos(this.state.draw.canvas, e)
@@ -333,10 +325,10 @@ export class Engine {
 
 		if(!this.fpsThrottleTime || this.elapsedTime >= this.fpsThrottleTime) {
 			this.state!.frameTime = this.elapsedTime
-			// clear canvas
-			this.clear()
 			// call user frame
 			this.userFrame(this.state!, this)
+			// draw letterboxes if necessary to mask user content in fit mode
+			this.state!.draw.letterbox(this.clearColor)
 			// calculate fps
 			this.fpsElapsedTime += this.elapsedTime
 			this.elapsedTime = 0

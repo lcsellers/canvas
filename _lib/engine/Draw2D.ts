@@ -1,5 +1,6 @@
 import { Vec, Rect } from '../primitives'
 import { Text } from './Text'
+import { Sprite } from './Sprite'
 
 export type ScaleType = 'stretch' | 'fit' | 'shrink' | 'responsive' | 'none'
 
@@ -19,6 +20,7 @@ export class Draw2D {
 	private scaleType: ScaleType
 	private pxCanvas: HTMLCanvasElement
 	private pxCtx: CanvasRenderingContext2D
+	private viewport!: Vec
 
 	constructor(canvas: HTMLCanvasElement, dim?: Vec, scale?: ScaleType) {
 
@@ -53,6 +55,19 @@ export class Draw2D {
 	clear(fillStyle = 'black') {
 		this.rect(new Rect(0, 0, this.size.x, this.size.y), fillStyle)
 		this.ctx.restore()
+	}
+
+	letterbox(fillStyle = 'white') {
+		this.ctx.fillStyle = fillStyle
+		if(this.origin.x === 0) {
+			// horizontal letterboxes
+			this.ctx.fillRect(0, 0, this.viewport.x, this.origin.y)
+			this.ctx.fillRect(0, this.viewport.y - this.origin.y, this.viewport.x, this.origin.y)
+		} else {
+			// vertical letterboxes
+			this.ctx.fillRect(0, 0, this.origin.x, this.viewport.y)
+			this.ctx.fillRect(this.viewport.x - this.origin.x, 0, this.origin.x, this.viewport.y)
+		}
 	}
 
 	line(start: Vec, end: Vec, stroke: string) {
@@ -97,6 +112,18 @@ export class Draw2D {
 		this.ctx.restore()
 	}
 
+	sprite(sprite: Sprite, origin: Vec, scale: number | Vec = new Vec(1, 1)) {
+		if(typeof scale === 'number') {
+			scale = new Vec(scale, scale)
+		}
+		this.applyScale()
+		this.ctx.drawImage(sprite.img,
+			sprite.region.x,sprite.region.y,sprite.region.w,sprite.region.h, // source
+			origin.x,origin.y,sprite.region.w * scale.x,sprite.region.h * scale.y
+		)
+		this.ctx.restore()
+	}
+
 	image(img: HTMLImageElement, origin: Vec) {
 		this.applyScale()
 		this.ctx.drawImage(img, origin.x, origin.y, img.width, img.height)
@@ -120,52 +147,52 @@ export class Draw2D {
 	}
 
 	private calculateScale() {
-		const viewport = new Vec(window.innerWidth, window.innerHeight)
+		this.viewport = new Vec(window.innerWidth, window.innerHeight)
 
 		// update physical and virtual size
 		if(this.scaleType === 'none') {
 			this.canvas.width = this.size.x
 			this.canvas.height = this.size.y
 		} else {
-			this.canvas.width = viewport.x
-			this.canvas.height = viewport.y
+			this.canvas.width = this.viewport.x
+			this.canvas.height = this.viewport.y
 		}
 		if(this.scaleType === 'responsive') {
-			this.size = viewport
+			this.size = this.viewport
 		}
 
 		if(this.scaleType === 'stretch') {
-			this.scale = Vec.div(viewport, this.size)
+			this.scale = Vec.div(this.viewport, this.size)
 			this.origin = new Vec()
 		} else if(this.scaleType === 'fit') {
-			let scale = viewport.x / this.size.x
-			if(this.size.y * scale > viewport.y) {
-				scale = viewport.y / this.size.y
-				this.origin = new Vec((viewport.x - (this.size.x * scale))/2, 0)
+			let scale = this.viewport.x / this.size.x
+			if(this.size.y * scale > this.viewport.y) {
+				scale = this.viewport.y / this.size.y
+				this.origin = new Vec((this.viewport.x - (this.size.x * scale))/2, 0)
 			} else {
-				this.origin = new Vec(0, (viewport.y - (this.size.y * scale))/2)
+				this.origin = new Vec(0, (this.viewport.y - (this.size.y * scale))/2)
 			}
 			this.scale = new Vec(scale, scale)
 		} else if(this.scaleType === 'shrink') {
 			let scale = 1
-			if(this.size.x > viewport.x) {
-				scale = viewport.x / this.size.x
-				if(this.size.y * scale > viewport.y) {
-					scale = viewport.y / this.size.y
-					this.origin = new Vec((viewport.x - (this.size.x * scale))/2, 0)
+			if(this.size.x > this.viewport.x) {
+				scale = this.viewport.x / this.size.x
+				if(this.size.y * scale > this.viewport.y) {
+					scale = this.viewport.y / this.size.y
+					this.origin = new Vec((this.viewport.x - (this.size.x * scale))/2, 0)
 				} else {
-					this.origin = new Vec(0, (viewport.y - (this.size.y * scale))/2)
+					this.origin = new Vec(0, (this.viewport.y - (this.size.y * scale))/2)
 				}
-			} else if(this.size.y > viewport.y) {
-				scale = viewport.y / this.size.y
-				if(this.size.x * scale > viewport.x) {
-					scale = viewport.x / this.size.x
-					this.origin = new Vec(0, (viewport.y - (this.size.y * scale))/2)
+			} else if(this.size.y > this.viewport.y) {
+				scale = this.viewport.y / this.size.y
+				if(this.size.x * scale > this.viewport.x) {
+					scale = this.viewport.x / this.size.x
+					this.origin = new Vec(0, (this.viewport.y - (this.size.y * scale))/2)
 				} else {
-					this.origin = new Vec((viewport.x - (this.size.x * scale))/2, 0)
+					this.origin = new Vec((this.viewport.x - (this.size.x * scale))/2, 0)
 				}
 			} else {
-				this.origin = Vec.sub(viewport, this.size).scale(0.5)
+				this.origin = Vec.sub(this.viewport, this.size).scale(0.5)
 			}
 			this.scale = new Vec(scale, scale)
 		}
