@@ -31,7 +31,7 @@ const generate: GameState = ({ draw }, engine, FIELD_SIZE: Vec, TILE_SIZE: numbe
 	const px = new PixelBuffer(draw, draw.size)
 
 	function drawTile(pos: Vec, [n, e, s, w]: boolean[]) {
-		const origin = Vec.scale(pos, TILE_SIZE).add(new Vec(1, 1))
+		const origin = Vec.mult(pos, TILE_SIZE).add(new Vec(1, 1))
 		let floor = FLOOR_COLOR
 		if(pos.eq(maze.start)) floor = START_COLOR
 		else if(pos.eq(maze.goal)) floor = GOAL_COLOR

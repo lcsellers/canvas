@@ -303,7 +303,7 @@ export class Engine {
 	private onMouseMove(e: MouseEvent) {
 		if(!this.state) return
 		this.state.mouse = mousePos(this.state.draw.canvas, e)
-			.mult(this.state.draw.scale)
+			.scale(this.state.draw.scale)
 			.add(this.state.draw.origin)
 	}
 

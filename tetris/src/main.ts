@@ -9,7 +9,7 @@ const TILE_SIZE = 10
 
 new Engine('main')
 	.setInternalDebugging('fps')
-	.setDimensions(Vec.add(FIELD_SIZE, new Vec(6, 1)).scale(TILE_SIZE), 'fit')
+	.setDimensions(Vec.add(FIELD_SIZE, new Vec(6, 1)).mult(TILE_SIZE), 'fit')
 	.createGameState('main', main)
 	.createGameState('gameOver', gameOver)
 	.start('main', FIELD_SIZE, TILE_SIZE)

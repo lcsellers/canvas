@@ -192,7 +192,7 @@ export class Draw2D {
 					this.origin = new Vec((this.viewport.x - (this.size.x * scale))/2, 0)
 				}
 			} else {
-				this.origin = Vec.sub(this.viewport, this.size).scale(0.5)
+				this.origin = Vec.sub(this.viewport, this.size).mult(0.5)
 			}
 			this.scale = new Vec(scale, scale)
 		}

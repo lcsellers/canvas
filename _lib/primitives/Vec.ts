@@ -25,7 +25,7 @@ export class Vec {
 		return this
 	}
 
-	mult(v: Vec) {
+	scale(v: Vec) {
 		this.x *= v.x
 		this.y *= v.y
 		return this
@@ -37,7 +37,7 @@ export class Vec {
 		return this
 	}
 
-	scale(factor: number) {
+	mult(factor: number) {
 		this.x *= factor
 		this.y *= factor
 		return this
@@ -55,16 +55,16 @@ export class Vec {
 		return new Vec(v1).sub(v2)
 	}
 
-	static mult(v1: Vec, v2: Vec) {
-		return new Vec(v1).mult(v2)
+	static scale(v1: Vec, v2: Vec) {
+		return new Vec(v1).scale(v2)
 	}
 
 	static div(v1: Vec, v2: Vec) {
 		return new Vec(v1).div(v2)
 	}
 
-	static scale(v: Vec, factor: number) {
-		return new Vec(v).scale(factor)
+	static mult(v: Vec, factor: number) {
+		return new Vec(v).mult(factor)
 	}
 
 }

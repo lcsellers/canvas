@@ -44,7 +44,7 @@ class Player {
 	}
 
 	render(scale: number) {
-		const center = Vec.scale(this.pos, scale)
+		const center = Vec.mult(this.pos, scale)
 		this.draw.circle(center, Player.radius * scale, 'white')
 		this.draw.circle(center, 1, 'black')
 	}
