@@ -3,7 +3,7 @@ import { Key } from 'lib/input'
 import { Vec, Spline } from 'lib/primitives'
 import { colors } from 'lib/color'
 
-const MOVE_SPEED = 2
+const MOVE_SPEED = 1
 const ACTOR_SPEED = 0.5
 const ACTOR_RADIUS = 4
 
@@ -37,28 +37,28 @@ new Engine('main')
 		let selected = 0
 		buttons.on('prev:down', () => {
 			selected--
-			if(selected < 0) selected = s.points.length - 1
+			if(selected < 0) selected = points.length - 1
 		})
 		buttons.on('next:down', () => {
 			selected++
-			if(selected >= s.points.length) selected = 0
+			if(selected >= points.length) selected = 0
 		})
 
 		return ({ frameTime }) => {
 
-			if(buttons.state('up')) s.points[selected].y -= MOVE_SPEED
-			if(buttons.state('right')) s.points[selected].x += MOVE_SPEED
-			if(buttons.state('down')) s.points[selected].y += MOVE_SPEED
-			if(buttons.state('left')) s.points[selected].x -= MOVE_SPEED
+			if(buttons.state('up')) points[selected].y -= MOVE_SPEED
+			if(buttons.state('right')) points[selected].x += MOVE_SPEED
+			if(buttons.state('down')) points[selected].y += MOVE_SPEED
+			if(buttons.state('left')) points[selected].x -= MOVE_SPEED
 
 			actor += ACTOR_SPEED / frameTime
-			if(actor >= s.points.length) actor -= s.points.length
+			if(actor >= points.length) actor -= points.length
 
 			px.clear(colors.black())
 			px.drawSpline(s, colors.white())
 			px.render()
 
-			s.points.forEach((p, i) => {
+			points.forEach((p, i) => {
 				draw.circle(p, MOVE_SPEED, i === selected ? 'blue' : 'white')
 			})
 
