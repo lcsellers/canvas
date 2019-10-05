@@ -43,8 +43,25 @@ export class Vec {
 		return this
 	}
 
+	rot(angle: number) {
+		const newX = this.x * Math.cos(angle) - this.y * Math.sin(angle)
+		const newY = this.x * Math.sin(angle) + this.y * Math.cos(angle)
+		this.x = newX
+		this.y = newY
+	}
+	
+	dist(v: Vec) {
+		const a = Math.abs(this.x - v.x)
+		const b = Math.abs(this.y - v.y)
+		return Math.sqrt(a * a + b * b)
+	}
+
 	eq(v: Vec) {
 		return v.x === this.x && v.y === this.y
+	}
+
+	static fromAngle(angle: number) {
+		return new Vec(Math.sin(angle), -Math.cos(angle))
 	}
 
 	static add(v1: Vec, v2: Vec) {
@@ -65,6 +82,10 @@ export class Vec {
 
 	static mult(v: Vec, factor: number) {
 		return new Vec(v).mult(factor)
+	}
+
+	static rot(v: Vec, angle: number) {
+		return new Vec(v).rot(angle)
 	}
 
 }

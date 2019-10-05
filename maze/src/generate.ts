@@ -1,7 +1,7 @@
 import { GameState, PixelBuffer } from 'lib/engine'
 import { Vec, Rect } from 'lib/primitives'
 import { gray, hsl, rgb, colorString } from 'lib/color'
-import { randRange } from 'lib/random'
+import { randInt } from 'lib/random'
 
 import Maze from './Maze'
 
@@ -14,7 +14,7 @@ const VIEW_GENERATION = true
 
 const generate: GameState = ({ draw }, engine, FIELD_SIZE: Vec, TILE_SIZE: number) => {
 
-	const start = new Vec(randRange(0, FIELD_SIZE.x), randRange(0, FIELD_SIZE.y))
+	const start = new Vec(randInt(0, FIELD_SIZE.x), randInt(0, FIELD_SIZE.y))
 	const wallRgb = colorString(WALL_COLOR)
 
 	const scale = new Vec(

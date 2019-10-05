@@ -49,4 +49,13 @@ export class Rect {
 				point.y < this.y + this.h	
 	}
 
+	wrap(point: Vec) {
+		const p = new Vec(point)
+		while(p.x < this.x) p.x += this.w
+		while(p.x >= this.x + this.w) p.x -= this.w
+		while(p.y < this.y) p.y += this.h
+		while(p.y >= this.y + this.h) p.y -= this.h
+		return p
+	}
+
 }

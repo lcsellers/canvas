@@ -1,7 +1,7 @@
 import { Vec, Rect } from 'lib/primitives'
 import { GameState, PixelBuffer } from 'lib/engine'
 import { Key } from 'lib/input'
-import { randRange } from 'lib/random'
+import { randInt } from 'lib/random'
 import { colors, hsl } from 'lib/color'
 
 const SnakeGame: GameState = ({ draw }, engine, FIELD_SIZE: Vec) => {
@@ -23,7 +23,7 @@ const SnakeGame: GameState = ({ draw }, engine, FIELD_SIZE: Vec) => {
 
 	function placeFruit() {
 		do {
-			fruit = new Vec(randRange(0, FIELD_SIZE.x), randRange(0, FIELD_SIZE.y))
+			fruit = new Vec(randInt(0, FIELD_SIZE.x), randInt(0, FIELD_SIZE.y))
 		} while(snake.some(segment => segment.eq(fruit)))
 	}
 

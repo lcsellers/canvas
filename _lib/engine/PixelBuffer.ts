@@ -1,8 +1,10 @@
-import { Vec, Rect, Spline } from '../primitives'
+import { Vec, Rect, Spline, Polygon } from '../primitives'
 import { Color, rgb } from '../color'
 import { Draw2D } from './Draw2D'
 
 export class PixelBuffer {
+
+	wrap = false
 
 	private buf: ImageData
 	private bounds: Rect
@@ -18,7 +20,11 @@ export class PixelBuffer {
 	}
 
 	set(coord: Vec, color: Color) {
-		if(!this.bounds.includes(coord)) return
+		if(this.wrap) {
+			coord = this.bounds.wrap(coord)
+		} else if(!this.bounds.includes(coord)) {
+			return
+		}
 		const offset = this.offset(coord)
 		this.buf.data[offset] = color.r
 		this.buf.data[offset + 1] = color.g
@@ -34,15 +40,75 @@ export class PixelBuffer {
 		}
 	}
 
-	clear(color: Color) {
+	clear(color: Color = { r: 0, g: 0, b: 0, a: 1 }) {
 		this.fill(this.bounds, color)
+	}
+
+	drawLine(p1: Vec, p2: Vec, color: Color) {
+		const delta = new Vec(p2.x - p1.x, p2.y - p1.y)
+		const dabs = new Vec(Math.abs(delta.x), Math.abs(delta.y))
+		const p = new Vec(2 * dabs.y - dabs.x, 2 * dabs.x - dabs.y)
+		if(dabs.y <= dabs.x) {
+			let coord, err
+			if(delta.x >= 0) {
+				coord = new Vec(p1)
+				err = p2.x
+			} else {
+				coord = new Vec(p2)
+				err = p1.x
+			}
+
+			this.set(coord, color)
+			while(coord.x < err) {
+				coord.x++
+				if(p.x < 0) {
+					p.x += 2 * dabs.y
+				} else {
+					coord.y += ((delta.x < 0 && delta.y < 0) || (delta.x > 0 && delta.y > 0))
+						? 1
+						: -1
+					p.x += 2 * (dabs.y - dabs.x)
+				}
+				this.set(coord, color)
+			}
+		} else {
+			let coord, err
+			if(delta.y >= 0) {
+				coord = new Vec(p1)
+				err = p2.y
+			} else {
+				coord = new Vec(p2)
+				err = p1.y
+			}
+
+			this.set(coord, color)
+			while(coord.y < err) {
+				coord.y++
+				if(p.y <= 0) {
+					p.y += 2 * dabs.x
+				} else {
+					coord.x += ((delta.x < 0 && delta.y < 0) || (delta.x > 0 && delta.y > 0))
+						? 1
+						: -1
+					p.y += 2 * (dabs.x - dabs.y)
+				}
+				this.set(coord, color)
+			}
+		}
 	}
 
 	drawSpline(s: Spline, color: Color, precision = 0.005) {
 		const end = s.loop ? s.points.length : s.points.length - 3
 		for(let t = 0; t < end; t += precision) {
 			const coord = s.getCoord(t)
-			this.set(new Vec(Math.floor(coord.x), Math.floor(coord.y)), color)
+			this.set(coord, color)
+		}
+	}
+
+	drawPolygon(p: Polygon, pos: Vec, color: Color) {
+		const vertices = p.getTransformedVertices(pos)
+		for(let i = 0; i < vertices.length; i++) {
+			this.drawLine(vertices[i], vertices[i === vertices.length - 1 ? 0 : i + 1], color)
 		}
 	}
 
@@ -51,7 +117,7 @@ export class PixelBuffer {
 	}
 
 	private offset(coord: Vec) {
-		return coord.y * this.size.x * 4 + coord.x * 4
+		return Math.floor(coord.y) * this.size.x * 4 + Math.floor(coord.x) * 4
 	}
 
 }

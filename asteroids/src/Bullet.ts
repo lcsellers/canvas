@@ -1,0 +1,15 @@
+import { Vec, Polygon } from 'lib/primitives'
+import { colors } from 'lib/color'
+
+import SpaceBody from './SpaceBody'
+
+export default class Bullet extends SpaceBody {
+
+	static SPEED = 15
+
+	constructor(screen: Vec, pos: Vec, angle: number) {
+		super(new Polygon([new Vec(0, 0)]), colors.white(), pos, screen)
+		this.vel = Vec.fromAngle(angle).mult(Bullet.SPEED)
+	}
+
+}

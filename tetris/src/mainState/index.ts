@@ -1,7 +1,7 @@
 import { Vec } from 'lib/primitives'
 import { GameState } from 'lib/engine'
 import { Key } from 'lib/input'
-import { randRange } from 'lib/random'
+import { randInt } from 'lib/random'
 
 import Course from '../Course'
 import Piece from '../Piece'
@@ -29,7 +29,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 	const scoreText = engine.createText('Score: ')
 	
 	function randomPiece() {
-		current = new Piece(randRange(0, 7), new Vec(3, 0))
+		current = new Piece(randInt(0, 7), new Vec(3, 0))
 		if(!course.fits(current)) {
 			engine.gameState('gameOver', score)
 		} else {
