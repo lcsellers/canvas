@@ -13,7 +13,7 @@ export class Grid<T> {
 	private data: T[][]
 
 	constructor(public size: Vec) {
-		this.bounds = new Rect(0, 0, size.x - 1, size.y - 1)
+		this.bounds = new Rect(0, 0, size.x, size.y)
 		this.data = []
 		for(let y = 0; y < size.y; y++) {
 			this.data.push(new Array(size.x))
