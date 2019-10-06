@@ -1,9 +1,9 @@
-export function randFloat(min: number, max: number) {
+export function randFloat(min: number = 0, max: number = 1) {
 	return min + (Math.random() * (max - min))
 }
 
 export function randInt(min: number, max: number) {
-	return Math.floor(Math.random() * (max - min)) + min
+	return Math.floor(randFloat(min, max))
 }
 
 export function randElement<T>(arr: T[]): T {

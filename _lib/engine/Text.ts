@@ -27,6 +27,11 @@ export class Text {
 		return this
 	}
 
+	size(size: number) {
+		this._size = size
+		return this
+	}
+
 	font(family: string) {
 		this._family = family
 		return this

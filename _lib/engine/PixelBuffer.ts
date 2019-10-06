@@ -1,6 +1,7 @@
 import { Vec, Rect, Spline, Polygon } from '../primitives'
 import { Color, rgb } from '../color'
 import { Draw2D } from './Draw2D'
+import { Glyph } from './Glyph'
 
 export class PixelBuffer {
 
@@ -109,6 +110,34 @@ export class PixelBuffer {
 		const vertices = p.getTransformedVertices(pos)
 		for(let i = 0; i < vertices.length; i++) {
 			this.drawLine(vertices[i], vertices[i === vertices.length - 1 ? 0 : i + 1], color)
+		}
+	}
+
+	drawGlyph(g: Glyph, pos: Vec, color: Color) {
+		const a = Object.assign({}, color)
+		for(let y = 0, i = 0; y < g.size; y++) {
+			for(let x = 0; x < g.size; x++, i++) {
+				const alpha = g.data[i] * color.a
+				if(!alpha) continue
+				a.a = alpha / 255
+				const p = Vec.add(pos, new Vec(x, y))
+				const b = this.get(p)
+				if(b.a <= 0 || alpha === 255) {
+					// draw the pixel directly
+					// console.log(p.x, p.y, `${a.r},${a.g},${a.b},${a.a}`)
+					this.set(p, a)
+				} else {
+					// composite the pixel
+					const rev = 1 - a.a
+					const over = a.a + b.a * rev
+					const comp = rgb(
+						((a.r/255 + (b.r/255)*rev) / over) * 255,
+						((a.g/255 + (b.g/255)*rev) / over) * 255,
+						((a.b/255 + (b.b/255)*rev) / over) * 255,
+						over)
+					this.set(p, comp)
+				}
+			}
 		}
 	}
 
