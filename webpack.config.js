@@ -32,7 +32,7 @@ entries.forEach(({ dir, title }) => {
 	if(fs.existsSync(path.join(__dirname, dir, 'assets'))) {
 		copy.push({
 			from: `${dir}/assets`,
-			to: `dist/${dir}`
+			to: dir
 		})
 	}
 })
