@@ -1,13 +1,19 @@
-import { Vec, Collection } from '../primitives'
-import { Buttons, Bindings, mousePos } from '../input'
-import { Color, colors } from '../color'
-import { Draw2D, ScaleType } from './Draw2D'
-import { Text } from './Text'
+import { Collection } from 'lib/util'
+import { Vec } from 'lib/primitives'
+import { Buttons, Bindings, mousePos } from 'lib/input'
+import { Draw2D, ScaleType, Color, colors, GraphicsObject, Text } from 'lib/graphics'
+import { DynamicObject } from './DynamicObject'
+import { EngineObject } from './EngineObject'
+import { CanvasEngine, Timing, FrameState, ButtonEvents, Debugger } from './CanvasEngine'
 
-type Debugger = 'fps'
+interface GameStateFeatures {
+	draw: Draw2D
+	buttons: ButtonEvents
+	images: Collection<HTMLImageElement>
+}
 
-export type EngineCallback = (state: EngineState, engine: Engine) => void
-export type GameState = (state: EngineState, engine: Engine, ...args: any[]) => EngineCallback
+type FrameCallback = (frame: FrameState) => void
+export type GameState = (features: GameStateFeatures, engine: CanvasEngine, ...args: any[]) => FrameCallback | undefined
 
 export interface EngineState {
 	draw: Draw2D
@@ -18,9 +24,10 @@ export interface EngineState {
 	buttons: Buttons
 }
 
-export class Engine {
+export class Engine extends CanvasEngine {
 
-	private state?: EngineState
+	images: Collection<HTMLImageElement> = {}
+
 	private buttons = new Buttons()
 	
 	/** Used upon construction if a canvas element already exists */
@@ -45,7 +52,8 @@ export class Engine {
 	/** Prevent start() being called multiple times */
 	private initSemaphore = false
 
-	/** Timestamp of the previous frame to calulate frameTime */
+	private fps = 0
+	/** Timestamp of the previous frame to calculate frameTime */
 	private lastFrameTime = 0
 	/** Ms elapsedTime must reach before the user frame is executed (throttles FPS) */
 	private fpsThrottleTime = 0
@@ -62,7 +70,7 @@ export class Engine {
 	private delayTimers: any = {}
 
 	/** Game States */
-	private userFrame: EngineCallback = () => {}
+	private userFrame: FrameCallback = () => {}
 	private gameStates: Collection<GameState> = {}
 
 	/** animationFrame and Pausing */
@@ -72,16 +80,26 @@ export class Engine {
 		return this._paused
 	}
 
-	/** Text Defaults */
-	textDefaultFamily?: string
-	textDefaultSize?: number
-	textDefaultWeight?: string
-	textDefaultStyle?: string
-	textDefaultFg?: Color
-	textDefaultBg?: Color
+	/** Proxies */
+	private timing: Timing = {
+		throttle: (fn, ms) => this.throttle(fn, ms),
+		delay: (fn, ms) => this.delay(fn, ms)
+	}
+	private frameState: FrameState = {
+		btn: (binding: string) => this.buttons.state(binding),
+		frameTime: 0,
+		mouse: new Vec()
+	}
+	private buttonEvents: ButtonEvents = {
+		on: (event, fn) => this.$on('btn:' + event, fn),
+		off: (event, fn) =>  this.$off('btn:' + event, fn)
+	}
+	private features: GameStateFeatures | null = null
 
 	constructor(canvasId?: string) {
+		super()
 		this.canvasId = canvasId || ''
+		this.buttons.$proxy(this, 'btn:')
 	}
 
 	/**
@@ -137,42 +155,33 @@ export class Engine {
 	}
 
 	/**
-	 * Text Handling
+	 * Text Defaults
 	 */
-	createText(text: string) {
-		return new Text(this.state!.draw.ctx, text,
-			this.textDefaultFamily,
-			this.textDefaultWeight,
-			this.textDefaultStyle,
-			this.textDefaultSize,
-			this.textDefaultFg, this.textDefaultBg
-		)
-	}
 	setDefaultFont(font: string) {
-		this.textDefaultFamily = font
+		Text.D_FAMILY = font
 		return this
 	}
 	setDefaultTextSize(size: number) {
-		this.textDefaultSize = size
+		Text.D_SIZE = size
 		return this
 	}
 	setDefaultTextWeight(weight: string) {
-		this.textDefaultWeight = weight
+		Text.D_BOLD = weight
 		return this
 	}
 	setDefaultTextStyle(style: string) {
-		this.textDefaultStyle = style
+		Text.D_ITALIC = style
 		return this
 	}
 	setDefaultTextColor(fg: Color, bg?: Color) {
-		this.textDefaultFg = fg
+		Text.D_FG = fg
 		if(bg) {
-			this.textDefaultBg = bg
+			Text.D_BG = bg
 		}
 		return this
 	}
 	setDefaultTextBackground(bg: Color) {
-		this.textDefaultBg = bg
+		Text.D_BG = bg
 		return this
 	}
 
@@ -192,17 +201,24 @@ export class Engine {
 		return this
 	}
 
-	gameState(name: string, ...args: any[]) {
-		if(!this.state) {
-			throw new Error('Please do not switch game state outside a frame() function')
+	state(name: string, ...args: any[]) {
+		if(!this.features) {
+			throw new Error('Cannot switch state before initialized')
 		}
 		if(!this.gameStates[name]) {
 			throw new Error(`Please create game state ${name} before using it`)
 		}
-		this.buttons.removeAllListeners()
+		this.buttons.$reset()
+		this.$reset()
 		this.throttleTimers = {}
 		this.delayTimers = {}
-		this.userFrame = this.gameStates[name](this.state, this, ...args)
+		const frame = this.gameStates[name](this.features, this, ...args)
+		if(frame) {
+			this.userFrame = frame
+		} else {
+			this.userFrame = () => {}
+			this.pause()
+		}
 	}
 
 	async loadImages(...images: string[]): Promise<Collection<HTMLImageElement>> {
@@ -212,13 +228,13 @@ export class Engine {
 		await Promise.all(images.map(src => new Promise((resolve, reject) => {
 			const img = document.createElement('img')
 			img.onload = () => {
-				this.state!.images[src] = img
+				this.images[src] = img
 				resolve()
 			}
 			img.onerror = err => reject(err)
 			img.src = src
 		})))
-		return this.state.images
+		return this.images
 	}
 
 	debug(key: string, value: any) {
@@ -264,6 +280,7 @@ export class Engine {
 		
 		window.addEventListener('load', async () => {
 			
+			// access dom canvas element
 			let canvas
 			if(this.canvasId) {
 				canvas = document.getElementById(this.canvasId)
@@ -273,15 +290,22 @@ export class Engine {
 				document.body.append(canvas)
 			}
 
-			this.state = {
+			// initialize Draw2D
+			this.features = {
 				draw: new Draw2D(canvas as HTMLCanvasElement, this.drawSize, this.drawScale),
-				frameTime: 0,
-				fps: 0,
-				mouse: new Vec(),
-				images: {},
-				buttons: this.buttons
+				images: this.images,
+				buttons: this.buttonEvents
 			}
-			this.debugText = new Text(this.state.draw.ctx, '')
+
+			// set up Object state
+			GraphicsObject.DRAW = this.features.draw
+			DynamicObject.BUTTON = this.buttonEvents
+			DynamicObject.DEBUG = (key, val) => this.debug(key, val)
+			DynamicObject.FRAME = this.frameState
+			DynamicObject.TIMING = this.timing
+			EngineObject.ENGINE = this
+
+			this.debugText = new Text('')
 				.color(colors.white(), colors.black())
 				.padding(10)
 
@@ -289,7 +313,7 @@ export class Engine {
 				await this.loadImages(...this.preloadAssets)
 			}
 
-			this.gameState(gameState, ...args)
+			this.state(gameState, ...args)
 
 			if(!this._paused) {
 				this.lastFrameTime = performance.now()
@@ -301,10 +325,11 @@ export class Engine {
 	}
 
 	private onMouseMove(e: MouseEvent) {
-		if(!this.state) return
-		this.state.mouse = mousePos(this.state.draw.canvas, e)
-			.scale(this.state.draw.scale)
-			.add(this.state.draw.origin)
+		if(!this.features) return
+		this.frameState.mouse.copy(mousePos(this.features.draw.canvas, e)
+			.scale(this.features.draw.scale)
+			.add(this.features.draw.origin))
+		this.$emit('btn:mousemove', this.frameState.mouse)
 	}
 
 	private frame() {
@@ -324,23 +349,23 @@ export class Engine {
 		})
 
 		if(!this.fpsThrottleTime || this.elapsedTime >= this.fpsThrottleTime) {
-			this.state!.frameTime = this.elapsedTime
+			this.frameState.frameTime = this.elapsedTime
 			// call user frame
-			this.userFrame(this.state!, this)
+			this.userFrame(this.frameState)
 			// draw letterboxes if necessary to mask user content in fit mode
-			this.state!.draw.letterbox(this.clearColor)
+			this.features!.draw.letterbox(this.clearColor)
 			// calculate fps
 			this.fpsElapsedTime += this.elapsedTime
 			this.elapsedTime = 0
 			if(this.fpsElapsedTime >= 1000) {
-				this.state!.fps = this.frameCount
+				this.fps = this.frameCount
 				this.frameCount = 0
 				this.fpsElapsedTime = 0
 			}
 			this.frameCount++
 			// debugging
 			if(this.internalDebug.fps) {
-				this.userDebug.unshift('FPS: ' + this.state!.fps.toFixed(0))
+				this.userDebug.unshift('FPS: ' + this.fps.toFixed(0))
 			}
 			if(this.userDebug.length) {
 				const debugPos = new Vec(0, 0)
@@ -352,7 +377,7 @@ export class Engine {
 			}
 			this.userDebug = []
 			// reset accumulator
-			this.state!.frameTime = 0
+			this.frameState.frameTime = 0
 		}
 
 		if(!this._paused) {

@@ -1,6 +1,6 @@
-import { PixelBuffer, Engine } from 'lib/engine'
 import { Vec } from 'lib/primitives'
-import { rgb, gray, colors } from 'lib/color'
+import { rgb, gray, colors, Bitmap } from 'lib/graphics'
+import { DynamicObject } from 'lib/engine'
 
 const ROAD = gray(100)
 const LINE = colors.white()
@@ -14,14 +14,17 @@ interface Segment {
 	curve: number
 }
 
-export default class Track {
+export default class Track extends DynamicObject {
 
 	length: number
 	curve = 0
 	curvature = 0
 	private segments: Segment[]
+	private screen: Vec
 
-	constructor(private screen: Vec, segments: number[][]) {
+	constructor(segments: number[][]) {
+		super()
+		this.screen = new Vec(this._d.size)
 		this.length = 0
 		this.segments = segments.map(arr => {
 			const seg = { length: arr[0], curve: arr[1] }
@@ -30,7 +33,7 @@ export default class Track {
 		})
 	}
 
-	update(frameTime: number, distance: number, speed: number) {
+	update(distance: number, speed: number) {
 		let d = 0
 		let i = 0
 		while(d <= distance) {
@@ -38,11 +41,11 @@ export default class Track {
 			i++
 		}
 
-		this.curve += ((this.segments[i - 1].curve - this.curve) * speed) / frameTime / 2
-		this.curvature += this.curve * speed / frameTime
+		this.curve += ((this.segments[i - 1].curve - this.curve) * speed) / this._f.frameTime / 2
+		this.curvature += this.curve * speed / this._f.frameTime
 	}
 
-	draw(px: PixelBuffer, distance: number) {
+	draw(px: Bitmap, distance: number) {
 
 		const halfHeight = this.screen.y/2
 		const width = this.screen.x

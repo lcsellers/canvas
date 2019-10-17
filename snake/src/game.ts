@@ -1,8 +1,8 @@
-import { Vec, Rect } from 'lib/primitives'
-import { GameState, PixelBuffer } from 'lib/engine'
+import { Vec } from 'lib/primitives'
+import { GameState } from 'lib/engine'
 import { Key } from 'lib/input'
-import { randInt } from 'lib/random'
-import { colors, hsl } from 'lib/color'
+import { randInt } from 'lib/util'
+import { colors, hsl, Bitmap } from 'lib/graphics'
 
 const SnakeGame: GameState = ({ draw }, engine, FIELD_SIZE: Vec) => {
 
@@ -13,7 +13,7 @@ const SnakeGame: GameState = ({ draw }, engine, FIELD_SIZE: Vec) => {
 	const SNAKE_BODY = hsl(124, 0.67, 0.8)
 	const FRUIT = colors.red()
 
-	let px = new PixelBuffer(draw, FIELD_SIZE)
+	let px = new Bitmap(FIELD_SIZE)
 
 	let snake: Vec[]
 	let fruit: Vec
@@ -82,16 +82,16 @@ const SnakeGame: GameState = ({ draw }, engine, FIELD_SIZE: Vec) => {
 
 	reset()
 
-	return ({ buttons }) => {
+	return ({ btn }) => {
 		engine.debug('speed', speed)
 
-		if(buttons.state('up')) {
+		if(btn('up')) {
 			nextDir = new Vec(0, -1)
-		} else if(buttons.state('down')) {
+		} else if(btn('down')) {
 			nextDir = new Vec(0, 1)
-		} else if(buttons.state('left')) {
+		} else if(btn('left')) {
 			nextDir = new Vec(-1, 0)
-		} else if(buttons.state('right')) {
+		} else if(btn('right')) {
 			nextDir = new Vec(1, 0)
 		}
 
@@ -103,7 +103,7 @@ const SnakeGame: GameState = ({ draw }, engine, FIELD_SIZE: Vec) => {
 			px.set(segment, i ? SNAKE_BODY : SNAKE_HEAD)
 		})
 
-		px.render()
+		draw.bitmap(px)
 	}
 }
 

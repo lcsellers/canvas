@@ -1,7 +1,7 @@
-import { Engine, PixelBuffer } from 'lib/engine'
+import { Engine } from 'lib/engine'
 import { Vec, Grid } from 'lib/primitives'
-import { gray } from 'lib/color'
-import { randBool } from 'lib/random'
+import { gray, Bitmap } from 'lib/graphics'
+import { randBool } from 'lib/util'
 
 const BLACK = gray(0)
 const WHITE = gray(255)
@@ -12,7 +12,7 @@ new Engine('main')
 
 		const size = draw.size
 
-		const px = new PixelBuffer(draw, size)
+		const px = new Bitmap(size)
 		let field: Grid<number>
 
 		function seedRandom() {
@@ -127,7 +127,7 @@ new Engine('main')
 					: neighbors === 3 ? 1 : 0
 			})
 
-			px.render()
+			draw.bitmap(px)
 		}
 	})
 	.setFps(20)

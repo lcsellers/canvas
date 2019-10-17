@@ -1,5 +1,5 @@
 import { Vec, Polygon } from 'lib/primitives'
-import { colors } from 'lib/color'
+import { colors } from 'lib/graphics'
 import SpaceBody from './SpaceBody'
 
 const model = [
@@ -14,22 +14,22 @@ export default class Player extends SpaceBody {
 	static TURN_SPEED = 1
 	static ACC = 4
 
-	constructor(screen: Vec) {
-		const poly = new Polygon(model).scale(new Vec(5, 5))
-		super(poly, colors.white(), Vec.mult(screen, 0.5), screen)
+	constructor() {
+		super(new Polygon(model).scale(new Vec(5, 5)), colors.white(), new Vec())
+		this.pos = Vec.mult(this._d.size, 0.5)
 	}
 
-	input(left: boolean, right: boolean, thrust: boolean, frameTime: number) {
-		if(left) {
-			this.angle -= Player.TURN_SPEED / frameTime
+	update() {
+		if(this._f.btn('left')) {
+			this.angle -= Player.TURN_SPEED / this._f.frameTime
 		}
-		if(right) {
-			this.angle += Player.TURN_SPEED / frameTime
+		if(this._f.btn('right')) {
+			this.angle += Player.TURN_SPEED / this._f.frameTime
 		}
-		if(thrust) {
-			this.vel.add(Vec.fromAngle(this.angle).mult(Player.ACC / frameTime))
+		if(this._f.btn('thrust')) {
+			this.vel.add(Vec.fromAngle(this.angle).mult(Player.ACC / this._f.frameTime))
 		}
-		super.update(frameTime)
+		return super.update()
 	}
 
 }

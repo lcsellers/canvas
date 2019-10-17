@@ -1,5 +1,4 @@
-import { EventEmitter } from 'eventemitter3'
-import { Collection } from '../primitives'
+import { EventEmitter, Collection } from 'lib/util'
 import { Key } from './Key'
 
 export interface Bindings { [key: number]: string }
@@ -41,14 +40,14 @@ export class Buttons extends EventEmitter {
 		if(!binding || this._state[binding]) return
 
 		this._state[binding] = true
-		this.emit(`${binding}:down`)
+		this.$emit(`${binding}:down`)
 	}
 	private btnUp(key: Key) {
 		const binding = this._bindings[key]
 		if(!binding) return
 
 		this._state[binding] = false
-		this.emit(`${binding}:up`)
+		this.$emit(`${binding}:up`)
 	}
 
 }

@@ -1,7 +1,7 @@
-import { Engine, PixelBuffer } from 'lib/engine'
+import { Engine } from 'lib/engine'
 import { Key } from 'lib/input'
 import { Vec, Spline } from 'lib/primitives'
-import { colors } from 'lib/color'
+import { colors, Bitmap } from 'lib/graphics'
 
 const MOVE_SPEED = 1
 const ACTOR_SPEED = 0.5
@@ -11,7 +11,7 @@ new Engine('main')
 	.setDimensions(new Vec(200, 150), 'fit')
 	.createGameState('main', ({ draw, buttons }, engine) => {
 
-		buttons.bind({
+		engine.setBindings({
 			[Key.KEY_A]: 'prev',
 			[Key.KEY_D]: 'next',
 			[Key.UP_ARROW]: 'up',
@@ -21,14 +21,17 @@ new Engine('main')
 			[Key.DOWN_ARROW]: 'down'
 		})
 
-		const px = new PixelBuffer(draw, draw.size)
+		const px = new Bitmap(draw.size)
 
-		const y = draw.size.y/2
-		const col = draw.size.x / 7
+		const center = Vec.mult(draw.size, 0.5)
+		const r = center.y * 0.7
 
 		const points: Vec[] = []
-		for(let i = 0; i < 6; i++) {
-			points.push(new Vec(col + i * col, y))
+		const segments = 10
+		const segment = Math.PI * 2 / segments
+		for(let i = 0; i < segments; i++) {
+			const a = segment * i
+			points.push(new Vec(Math.sin(a), Math.cos(a)).mult(r).add(center))
 		}
 
 		const s = new Spline(points, true)
@@ -44,22 +47,22 @@ new Engine('main')
 			if(selected >= points.length) selected = 0
 		})
 
-		return ({ frameTime }) => {
+		return ({ frameTime, btn }) => {
 
-			if(buttons.state('up')) points[selected].y -= MOVE_SPEED
-			if(buttons.state('right')) points[selected].x += MOVE_SPEED
-			if(buttons.state('down')) points[selected].y += MOVE_SPEED
-			if(buttons.state('left')) points[selected].x -= MOVE_SPEED
+			if(btn('up')) points[selected].y -= MOVE_SPEED
+			if(btn('right')) points[selected].x += MOVE_SPEED
+			if(btn('down')) points[selected].y += MOVE_SPEED
+			if(btn('left')) points[selected].x -= MOVE_SPEED
 
 			actor += ACTOR_SPEED / frameTime
 			if(actor >= points.length) actor -= points.length
 
 			px.clear(colors.black())
 			px.drawSpline(s, colors.white())
-			px.render()
+			draw.bitmap(px)
 
 			points.forEach((p, i) => {
-				draw.circle(p, MOVE_SPEED, i === selected ? 'blue' : 'white')
+				draw.circle(p, MOVE_SPEED*2, i === selected ? 'blue' : 'green')
 			})
 
 			const p = s.getCoord(actor)

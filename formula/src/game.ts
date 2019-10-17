@@ -1,4 +1,5 @@
-import { GameState, PixelBuffer } from 'lib/engine'
+import { GameState } from 'lib/engine'
+import { Bitmap } from 'lib/graphics'
 import { Key } from 'lib/input'
 
 import Car from './Car'
@@ -13,9 +14,9 @@ const game: GameState = ({ draw, images }, engine) => {
 		[Key.RIGHT_ARROW]: 'right'
 	})
 
-	const px = new PixelBuffer(draw, draw.size)
+	const px = new Bitmap(draw.size)
 
-	const track = new Track(draw.size, [
+	const track = new Track([
 		[10, 0],
 		[200, 0],
 		[200, 1],
@@ -28,12 +29,12 @@ const game: GameState = ({ draw, images }, engine) => {
 		[500, 0.2],
 		[200, 0]
 	])
-	const car = new Car(draw, images['car_green.png'], track.length)
-	const scenery = new Scenery(draw.size)
+	const car = new Car(images['car_green.png'], track.length)
+	const scenery = new Scenery()
 
-	return ({ frameTime, buttons }) => {
-		car.update(buttons.state('gas'), buttons.state('left'), buttons.state('right'), track.curvature, frameTime)
-		track.update(frameTime, car.distance, car.speed)
+	return () => {
+		car.update(track.curvature)
+		track.update(car.distance, car.speed)
 
 		engine.debug('Dist', car.distance.toFixed(0) + '/' + track.length)
 		engine.debug('Speed', car.speed.toFixed(2))
@@ -43,7 +44,7 @@ const game: GameState = ({ draw, images }, engine) => {
 
 		scenery.draw(px, track.curvature)
 		track.draw(px, car.distance)
-		px.render()
+		draw.bitmap(px)
 		car.render(track.curve)
 	}
 }

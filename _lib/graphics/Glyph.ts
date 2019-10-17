@@ -1,7 +1,7 @@
-import { Vec } from '../primitives'
+import { Vec } from 'lib/primitives'
 import { Draw2D } from './Draw2D'
 import { Text } from './Text'
-import { colors } from '../color'
+import { colors } from './color'
 
 export interface Glyph {
 	data: Uint8ClampedArray
@@ -20,7 +20,8 @@ export class GlyphSet {
 		this.canvas = document.createElement('canvas')
 		this.draw = new Draw2D(this.canvas, new Vec(size, size), 'none')
 		this.center = new Vec(size/2, size/2)
-		this.t = new Text(this.draw.ctx, '', font)
+		this.t = new Text('')
+			.font(font)
 			.size(size)
 			.color(colors.white(), colors.black())
 			.origin('center center')

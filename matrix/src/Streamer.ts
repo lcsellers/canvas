@@ -1,5 +1,5 @@
 import { Vec } from 'lib/primitives'
-import { randInt } from 'lib/random'
+import { randInt } from 'lib/util'
 
 export default class Streamer {
 

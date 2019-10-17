@@ -1,5 +1,5 @@
-import { Vec, Rect, Grid } from 'lib/primitives'
-import { randElement } from 'lib/random'
+import { Vec, Grid } from 'lib/primitives'
+import { randElement } from 'lib/util'
 
 // true indicates a wall in that direction
 type MazeTile = boolean[]

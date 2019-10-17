@@ -1,15 +1,16 @@
 import { Vec, Rect } from 'lib/primitives'
-import { Draw2D } from 'lib/engine'
+import { GraphicsObject } from 'lib/graphics'
 
 import Piece from './Piece'
 import { colors } from './tetrimino'
 
-export default class Course {
+export default class Course extends GraphicsObject {
 
 	private data: Array<number | undefined>
 	private lines: number[] = []
 
-	constructor(private draw: Draw2D, public size: Vec, private pos: Vec, private tileSize: number) {
+	constructor(public size: Vec, private pos: Vec, private tileSize: number) {
+		super()
 		this.data = new Array(size.x * size.y)
 	}
 
@@ -60,21 +61,21 @@ export default class Course {
 					this.tileSize,
 					this.tileSize
 				)
-				this.draw.rect(r, p.color, { color: 'black', width: 0.2 })
+				this._d.rect(r, p.color, { color: 'black', width: 0.2 })
 				if(opacity < 1) {
-					this.draw.rect(r, `rgba(0, 0, 0, ${1 - opacity})`)
+					this._d.rect(r, `rgba(0, 0, 0, ${1 - opacity})`)
 				}
 			}
 		})
 	}
 
 	render() {
-		this.draw.rect(new Rect(this.pos.x, this.pos.y, (this.size.x + 2) * this.tileSize, (this.size.y + 1) * this.tileSize), 'silver')
-		this.draw.rect(new Rect(this.pos.x + this.tileSize, 0, this.size.x * this.tileSize, this.size.y * this.tileSize), 'black')
+		this._d.rect(new Rect(this.pos.x, this.pos.y, (this.size.x + 2) * this.tileSize, (this.size.y + 1) * this.tileSize), 'silver')
+		this._d.rect(new Rect(this.pos.x + this.tileSize, 0, this.size.x * this.tileSize, this.size.y * this.tileSize), 'black')
 		this.data.forEach((tile, i) => {
 			if(tile == undefined) return
 			const coord = new Vec(i % this.size.x, Math.floor(i / this.size.x))
-			this.draw.rect(new Rect(
+			this._d.rect(new Rect(
 				this.pos.x + ((coord.x + 1) * this.tileSize),
 				this.pos.y + (coord.y * this.tileSize),
 				this.tileSize,

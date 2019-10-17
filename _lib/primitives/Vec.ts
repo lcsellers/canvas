@@ -60,6 +60,12 @@ export class Vec {
 		return v.x === this.x && v.y === this.y
 	}
 
+	copy(v: Vec) {
+		this.x = v.x
+		this.y = v.y
+		return this
+	}
+
 	static fromAngle(angle: number) {
 		return new Vec(Math.sin(angle), -Math.cos(angle))
 	}

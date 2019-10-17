@@ -1,7 +1,7 @@
-import { Engine, PixelBuffer, GlyphSet, Text } from 'lib/engine'
+import { Engine } from 'lib/engine'
 import { Vec, Rect, Grid } from 'lib/primitives'
-import { colors, gray, rgb } from 'lib/color'
-import { randInt, randFloat } from 'lib/random'
+import { colors, rgb, Bitmap, GlyphSet } from 'lib/graphics'
+import { randInt, randFloat } from 'lib/util'
 
 import Streamer from './Streamer'
 
@@ -19,7 +19,7 @@ new Engine('main')
 			.add(192, 496)
 			.add(0x3041, 0x3097)
 			.add(0x30A1, 0x30FB)
-		const px = new PixelBuffer(draw, draw.size)
+		const px = new Bitmap(draw.size)
 		px.clear(BG)
 
 		// set up initial char field and streamers
@@ -47,7 +47,7 @@ new Engine('main')
 
 		// draw initial visible chars
 		streamers.forEach(s => s.each(drawChar))
-		px.render()
+		draw.bitmap(px)
 
 		const drop = engine.throttle(() => {
 			px.clear()
@@ -55,7 +55,7 @@ new Engine('main')
 				s.drop()
 				s.each(drawChar)
 			})
-		}, 50)
+		}, 150)
 
 		return () => {
 			drop()
@@ -66,7 +66,7 @@ new Engine('main')
 					drawChar(pos, head, remaining)
 				}
 			}))
-			px.render()
+			draw.bitmap(px)
 		}
 	})
 	.start()

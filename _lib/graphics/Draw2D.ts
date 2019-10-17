@@ -1,6 +1,7 @@
-import { Vec, Rect } from '../primitives'
+import { Vec, Rect, Polygon } from '../primitives'
 import { Text } from './Text'
 import { Sprite } from './Sprite'
+import { Bitmap } from './Bitmap'
 
 export type ScaleType = 'stretch' | 'fit' | 'shrink' | 'responsive' | 'none'
 
@@ -18,8 +19,8 @@ export class Draw2D {
 	origin: Vec = new Vec()
 
 	private scaleType: ScaleType
-	private pxCanvas: HTMLCanvasElement
-	private pxCtx: CanvasRenderingContext2D
+	private tmpCanvas: HTMLCanvasElement
+	private tmpCtx: CanvasRenderingContext2D
 	private viewport!: Vec
 
 	constructor(canvas: HTMLCanvasElement, dim?: Vec, scale?: ScaleType) {
@@ -31,12 +32,12 @@ export class Draw2D {
 		}
 		this.ctx = ctx
 
-		this.pxCanvas = document.createElement('canvas')
-		let pxCtx = this.pxCanvas.getContext('2d')
+		this.tmpCanvas = document.createElement('canvas')
+		let pxCtx = this.tmpCanvas.getContext('2d')
 		if(!pxCtx) {
 			throw new Error('Error getting 2D context')
 		}
-		this.pxCtx = pxCtx
+		this.tmpCtx = pxCtx
 
 		this.scaleType = scale || 'none'
 		
@@ -106,38 +107,62 @@ export class Draw2D {
 		this.ctx.restore()
 	}
 
-	text(origin: Vec, text: Text) {
+	polygon(p: Polygon, pos: Vec, color: string) {
+		const vertices = p.getTransformedVertices(pos)
 		this.applyScale()
-		text.render(origin)
+		this.ctx.beginPath()
+		this.ctx.strokeStyle = color
+		this.ctx.moveTo(vertices[0].x, vertices[0].y)
+		for(let i = 1; i < vertices.length; i++) {
+			this.ctx.lineTo(vertices[i].x, vertices[i].y)
+		}
+		this.ctx.closePath()
+		this.ctx.stroke()
 		this.ctx.restore()
 	}
 
-	sprite(sprite: Sprite, origin: Vec, scale: number | Vec = new Vec(1, 1)) {
+	text(origin: Vec, text: Text) {
+		this.applyScale()
+		text.render(origin, this.ctx)
+		this.ctx.restore()
+	}
+
+	image(img: HTMLImageElement | Sprite, origin: Vec, scale: number | Vec = 1) {
 		if(typeof scale === 'number') {
 			scale = new Vec(scale, scale)
 		}
+		let imgStart: Vec
+		let imgSize: Vec
+		if(img instanceof Sprite) {
+			imgStart = img.origin
+			imgSize = img.size
+			img = img.img
+		} else {
+			imgStart = new Vec()
+			imgSize = new Vec(img.width, img.height)
+		}
 		this.applyScale()
-		this.ctx.drawImage(sprite.img,
-			sprite.region.x,sprite.region.y,sprite.region.w,sprite.region.h, // source
-			origin.x,origin.y,sprite.region.w * scale.x,sprite.region.h * scale.y
+		this.ctx.drawImage(img,
+			imgStart.x, imgStart.y, imgSize.x, imgSize.y, // source
+			origin.x, origin.y, imgSize.x * scale.x, imgSize.y * scale.y
 		)
 		this.ctx.restore()
 	}
 
-	image(img: HTMLImageElement, origin: Vec) {
-		this.applyScale()
-		this.ctx.drawImage(img, origin.x, origin.y, img.width, img.height)
-		this.ctx.restore()
+	bitmap(img: Bitmap | Sprite, pos: Vec = new Vec(), scale: Vec | number = 1) {
+		if(typeof scale === 'number') scale = new Vec(scale, scale)
+		if(img instanceof Sprite) img = img.px
+		this.getTempContext(img.size).putImageData(img.data, 0, 0)
+		this.ctx.imageSmoothingEnabled = false
+		this.ctx.drawImage(this.tmpCanvas,
+			this.origin.x + pos.x * this.scale.x, this.origin.y + pos.y * this.scale.y,
+			img.size.x * this.scale.x * scale.x, img.size.y * this.scale.y * scale.y)
 	}
 
-	imageData(img: ImageData, origin: Vec, size: Vec, scale: Vec) {
-		this.pxCanvas.width = size.x
-		this.pxCanvas.height = size.y
-		this.pxCtx.putImageData(img, 0, 0)
-		this.ctx.imageSmoothingEnabled = false
-		this.ctx.drawImage(this.pxCanvas,
-			this.origin.x + origin.x * this.scale.x, this.origin.y + origin.y * this.scale.y,
-			size.x * this.scale.x * scale.x, size.y * this.scale.y * scale.y)
+	getTempContext(size: Vec) {
+		this.tmpCanvas.width = size.x
+		this.tmpCanvas.height = size.y
+		return this.tmpCtx
 	}
 
 	private applyScale() {

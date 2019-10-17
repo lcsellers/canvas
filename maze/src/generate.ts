@@ -1,7 +1,7 @@
-import { GameState, PixelBuffer } from 'lib/engine'
+import { GameState } from 'lib/engine'
 import { Vec, Rect } from 'lib/primitives'
-import { gray, hsl, rgb, colorString } from 'lib/color'
-import { randInt } from 'lib/random'
+import { gray, hsl, rgb, colorString, Bitmap } from 'lib/graphics'
+import { randInt } from 'lib/util'
 
 import Maze from './Maze'
 
@@ -28,7 +28,7 @@ const generate: GameState = ({ draw }, engine, FIELD_SIZE: Vec, TILE_SIZE: numbe
 		while(maze.step()) {}
 	}
 
-	const px = new PixelBuffer(draw, draw.size)
+	const px = new Bitmap(draw.size)
 
 	function drawTile(pos: Vec, [n, e, s, w]: boolean[]) {
 		const origin = Vec.mult(pos, TILE_SIZE).add(new Vec(1, 1))
@@ -49,10 +49,10 @@ const generate: GameState = ({ draw }, engine, FIELD_SIZE: Vec, TILE_SIZE: numbe
 		})
 
 		draw.clear(wallRgb)
-		px.render(new Vec, scale)
+		draw.bitmap(px, new Vec(), scale)
 
 		if(!generating) {
-			engine.gameState('solve', FIELD_SIZE, TILE_SIZE, scale, wallRgb, px, maze)
+			engine.state('solve', FIELD_SIZE, TILE_SIZE, scale, wallRgb, px, maze)
 			return
 		}
 

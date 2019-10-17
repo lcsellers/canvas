@@ -1,23 +1,35 @@
-import { Vec, Rect, Spline, Polygon } from '../primitives'
-import { Color, rgb } from '../color'
-import { Draw2D } from './Draw2D'
+import { Vec, Rect, Spline, Polygon } from 'lib/primitives'
+import { Color, rgb } from './color'
+import { GraphicsObject } from './GraphicsObject'
 import { Glyph } from './Glyph'
 
-export class PixelBuffer {
+export class Bitmap extends GraphicsObject {
 
 	wrap = false
+	size: Vec
+	data: ImageData
 
-	private buf: ImageData
 	private bounds: Rect
 
-	constructor(private draw: Draw2D, public size: Vec) {
-		this.buf = draw.ctx.createImageData(size.x, size.y)
-		this.bounds = new Rect(size)
+	constructor(size: Vec)
+	constructor(img: HTMLImageElement)
+	constructor(a: Vec | HTMLImageElement) {
+		super()
+		if(a instanceof Vec) {
+			this.size = new Vec(a)
+			this.data = this._d.ctx.createImageData(this.size.x, this.size.y)
+		} else {
+			this.size = new Vec(a.width, a.height)
+			const ctx = this._d.getTempContext(this.size)
+			ctx.drawImage(a, 0, 0, a.width, a.height)
+			this.data = ctx.getImageData(0, 0, a.width, a.height)
+		}
+		this.bounds = new Rect(this.size)
 	}
 
 	get(coord: Vec): Color {
 		const offset = this.offset(coord)
-		return rgb(this.buf.data[offset], this.buf.data[offset + 1], this.buf.data[offset + 2], this.buf.data[offset + 3] / 255)
+		return rgb(this.data.data[offset], this.data.data[offset + 1], this.data.data[offset + 2], this.data.data[offset + 3] / 255)
 	}
 
 	set(coord: Vec, color: Color) {
@@ -27,10 +39,10 @@ export class PixelBuffer {
 			return
 		}
 		const offset = this.offset(coord)
-		this.buf.data[offset] = color.r
-		this.buf.data[offset + 1] = color.g
-		this.buf.data[offset + 2] = color.b
-		this.buf.data[offset + 3] = color.a * 255
+		this.data.data[offset] = color.r
+		this.data.data[offset + 1] = color.g
+		this.data.data[offset + 2] = color.b
+		this.data.data[offset + 3] = color.a * 255
 	}
 
 	fill(r: Rect, color: Color) {
@@ -113,6 +125,19 @@ export class PixelBuffer {
 		}
 	}
 
+	copyPixels(img: Bitmap, pos: Vec) {
+		for(let y = 0; y < img.size.y; y++) {
+			for(let x = 0; x < img.size.x; x++) {
+				const i = new Vec(x, y)
+				const color = img.get(i)
+				if(!color.a) continue
+				const p = Vec.add(pos, i)
+				// const current = this.get(p)
+				this.set(p, color)
+			}
+		}
+	}
+
 	drawGlyph(g: Glyph, pos: Vec, color: Color) {
 		const a = Object.assign({}, color)
 		for(let y = 0, i = 0; y < g.size; y++) {
@@ -124,7 +149,6 @@ export class PixelBuffer {
 				const b = this.get(p)
 				if(b.a <= 0 || alpha === 255) {
 					// draw the pixel directly
-					// console.log(p.x, p.y, `${a.r},${a.g},${a.b},${a.a}`)
 					this.set(p, a)
 				} else {
 					// composite the pixel
@@ -139,10 +163,6 @@ export class PixelBuffer {
 				}
 			}
 		}
-	}
-
-	render(pos: Vec = new Vec(), scale: Vec = new Vec(1, 1)) {
-		this.draw.imageData(this.buf, pos, this.size, scale)
 	}
 
 	private offset(coord: Vec) {

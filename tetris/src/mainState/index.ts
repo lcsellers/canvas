@@ -1,7 +1,8 @@
 import { Vec } from 'lib/primitives'
 import { GameState } from 'lib/engine'
 import { Key } from 'lib/input'
-import { randInt } from 'lib/random'
+import { randInt } from 'lib/util'
+import { Text } from 'lib/graphics'
 
 import Course from '../Course'
 import Piece from '../Piece'
@@ -26,12 +27,12 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 	let speed = 1000
 	let piecesDropped = 0
 
-	const scoreText = engine.createText('Score: ')
+	const scoreText = new Text('Score: ').size(5)
 	
 	function randomPiece() {
 		current = new Piece(randInt(0, 7), new Vec(3, 0))
 		if(!course.fits(current)) {
-			engine.gameState('gameOver', score)
+			engine.state('gameOver', score)
 		} else {
 			calcPreview()
 		}
@@ -98,7 +99,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 		[Key.ENTER]: 'drop'
 	})
 
-	course = new Course(draw, FIELD_SIZE, new Vec(), TILE_SIZE)
+	course = new Course(FIELD_SIZE, new Vec(), TILE_SIZE)
 	randomPiece()
 
 	buttons.on('drop:down', () => {
@@ -115,10 +116,10 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 		}
 	})
 
-	return ({ draw, buttons }) => {
+	return ({ btn }) => {
 		draw.clear('white')
 		
-		const [left, right, down] = [buttons.state('left'), buttons.state('right'), buttons.state('down')]
+		const [left, right, down] = [btn('left'), btn('right'), btn('down')]
 		if(left || right || down) {
 			userInput(left, right, down)
 		}
@@ -129,7 +130,7 @@ const TetrisMain: GameState = ({ draw, buttons }, engine, fieldSize?: Vec, tileS
 		course.renderPiece(preview, 0.35)
 		course.renderPiece(current)
 	
-		draw.text(new Vec(135, 20), scoreText.set(`Score: ${score}`, ))
+		draw.text(new Vec(125, 20), scoreText.set(`Score: ${score}`))
 	}
 
 }

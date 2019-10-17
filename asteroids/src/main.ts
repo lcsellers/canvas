@@ -1,4 +1,5 @@
-import { Engine, PixelBuffer } from 'lib/engine'
+import { Engine } from 'lib/engine'
+import { Bitmap } from 'lib/graphics'
 import { Key } from 'lib/input'
 import { Vec } from 'lib/primitives'
 
@@ -11,14 +12,14 @@ new Engine('main')
 	.setInternalDebugging('fps')
 	.createGameState('main', ({ draw, buttons }, engine) => {
 
-		buttons.bind({
+		engine.setBindings({
 			[Key.UP_ARROW]: 'thrust',
 			[Key.LEFT_ARROW]: 'left',
 			[Key.RIGHT_ARROW]: 'right',
 			[Key.SPACE]: 'fire'
 		})
 
-		const px = new PixelBuffer(draw, draw.size)
+		const px = new Bitmap(draw.size)
 		px.wrap = true
 
 		let player: Player
@@ -29,21 +30,17 @@ new Engine('main')
 		reset()
 
 		buttons.on('fire:down', () => {
-			bullets.push(new Bullet(draw.size, player.pos, player.angle))
+			bullets.push(new Bullet(player.pos, player.angle))
 		})
 
-		return ({ buttons, frameTime }) => {
+		return () => {
 			px.clear()
 
-			player.input(
-				buttons.state('left'),
-				buttons.state('right'),
-				buttons.state('thrust'),
-				frameTime)
-			bullets = bullets.filter(b => b.update(frameTime))
+			player.update()
+			bullets = bullets.filter(b => b.update())
 			asteroids = [
 				...asteroids.filter(a => {
-					a.update(frameTime)
+					a.update()
 					if(a.collide(player.pos)) {
 						dead = true
 					}
@@ -52,8 +49,8 @@ new Engine('main')
 							bullets.splice(i, 1)
 							if(a.radius > 4) {
 								newAsteroids.push(
-									new Asteroid(draw.size, a.pos, a.radius/2),
-									new Asteroid(draw.size, a.pos, a.radius/2)
+									new Asteroid(a.pos, a.radius/2),
+									new Asteroid(a.pos, a.radius/2)
 								)
 							}
 							return false
@@ -71,16 +68,16 @@ new Engine('main')
 			player.render(px)
 			bullets.forEach(b => b.render(px))
 			asteroids.forEach(a => a.render(px))
-			px.render()
+			draw.bitmap(px)
 		}
 
 		function reset() {
-			player = new Player(draw.size)
+			player = new Player()
 			dead = false
 			bullets = []
 			asteroids = [
-				new Asteroid(draw.size, new Vec(draw.size.x/4, draw.size.y/2), 32),
-				new Asteroid(draw.size, new Vec(draw.size.x * 0.75, draw.size.y/2), 32)
+				new Asteroid(new Vec(draw.size.x/4, draw.size.y/2), 32),
+				new Asteroid(new Vec(draw.size.x * 0.75, draw.size.y/2), 32)
 			]
 			newAsteroids = []
 		}

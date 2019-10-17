@@ -1,8 +1,8 @@
-import { PixelBuffer } from 'lib/engine'
+import { DynamicObject } from 'lib/engine'
 import { Vec, Rect, Polygon } from 'lib/primitives'
-import { Color } from 'lib/color'
+import { Color, Bitmap } from 'lib/Graphics'
 
-export default class SpaceBody {
+export default class SpaceBody extends DynamicObject {
 
 	pos: Vec
 	vel: Vec = new Vec(0, 0)
@@ -12,15 +12,16 @@ export default class SpaceBody {
 	private color: Color
 	protected bounds: Rect
 
-	constructor(model: Polygon, color: Color, pos: Vec, screen: Vec) {
+	constructor(model: Polygon, color: Color, pos: Vec) {
+		super()
 		this.pos = new Vec(pos)
-		this.bounds = new Rect(screen)
+		this.bounds = new Rect(this._d.size)
 		this.poly = model
 		this.color = color
 	}
 
-	update(frameTime: number) {
-		this.pos.add(Vec.mult(this.vel, 1/frameTime))
+	update() {
+		this.pos.add(Vec.mult(this.vel, 1/this._f.frameTime))
 		if(this.bounds.includes(this.pos)) {
 			return true
 		} else {
@@ -29,7 +30,7 @@ export default class SpaceBody {
 		}
 	}
 
-	render(px: PixelBuffer) {
+	render(px: Bitmap) {
 		this.poly.angle(this.angle)
 		px.drawPolygon(this.poly, this.pos, this.color)
 	}

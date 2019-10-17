@@ -1,19 +1,20 @@
 import { Vec } from 'lib/primitives'
+import { Text } from 'lib/graphics'
 import { GameState } from 'lib/engine'
 import { Key } from 'lib/input'
 
-const GameOver: GameState = ({ buttons }, engine, score) => {
+const GameOver: GameState = ({ draw, buttons }, engine, score) => {
 
 	engine.setBindings({
 		[Key.ENTER]: 'restart'
 	})
 
-	buttons.on('restart:up', () => engine.gameState('main'))
+	buttons.on('restart:up', () => engine.state('main'))
 
-	const gameOverText = engine.createText('GAME OVER').origin('top center')
-	const scoreText = engine.createText('Final Score: ' + score).origin('top center')
+	const gameOverText = new Text('GAME OVER').origin('top center')
+	const scoreText = new Text('Final Score: ' + score).origin('top center')
 
-	return ({ draw }) => {
+	return () => {
 		draw.clear('white')
 		draw.text(new Vec(draw.size.x/2, 50), gameOverText)
 		draw.text(new Vec(draw.size.x/2, 100), scoreText)
